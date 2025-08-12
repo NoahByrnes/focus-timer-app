@@ -38,9 +38,9 @@ const MainApp = () => {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-200">
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-950">
       {/* Sidebar */}
-      <div className="w-56 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col transition-colors duration-200">
+      <div className="w-56 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col">
         {/* Header */}
         <div className="p-4 border-b border-gray-100 dark:border-gray-800">
           <div>
@@ -56,7 +56,7 @@ const MainApp = () => {
               <NavLink
                 to="/plan"
                 className={({ isActive }) =>
-                  `flex items-center space-x-3 px-3 py-2.5 w-full text-left rounded-lg transition-colors duration-200 ${
+                  `flex items-center space-x-3 px-3 py-2.5 w-full text-left rounded-lg ${
                     isActive
                       ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
                       : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
@@ -71,7 +71,7 @@ const MainApp = () => {
               <NavLink
                 to="/"
                 className={({ isActive }) =>
-                  `flex items-center space-x-3 px-3 py-2.5 w-full text-left rounded-lg transition-colors duration-200 ${
+                  `flex items-center space-x-3 px-3 py-2.5 w-full text-left rounded-lg ${
                     isActive
                       ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
                       : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
@@ -83,13 +83,13 @@ const MainApp = () => {
               </NavLink>
             </li>
             <li>
-              <button className="flex items-center space-x-3 px-3 py-2.5 w-full text-left rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200">
+              <button className="flex items-center space-x-3 px-3 py-2.5 w-full text-left rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800">
                 <FileText className="w-4 h-4" />
                 <span className="text-sm">Review</span>
               </button>
             </li>
             <li>
-              <button className="flex items-center space-x-3 px-3 py-2.5 w-full text-left rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200">
+              <button className="flex items-center space-x-3 px-3 py-2.5 w-full text-left rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800">
                 <BarChart3 className="w-4 h-4" />
                 <span className="text-sm">Analyze</span>
               </button>
@@ -112,7 +112,7 @@ const MainApp = () => {
           <div className="space-y-1">
             <button
               onClick={toggleDarkMode}
-              className="flex items-center space-x-3 px-3 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg w-full text-left transition-colors duration-200"
+              className="flex items-center space-x-3 px-3 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg w-full text-left"
             >
               {isDarkMode ? (
                 <Sun className="w-4 h-4" />
@@ -131,7 +131,7 @@ const MainApp = () => {
             </button>
             <button 
               onClick={handleSignOut}
-              className="flex items-center space-x-3 px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 rounded-lg w-full text-left transition-colors duration-200"
+              className="flex items-center space-x-3 px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 rounded-lg w-full text-left"
             >
               <LogOut className="w-4 h-4" />
               <span className="text-sm">Log out</span>

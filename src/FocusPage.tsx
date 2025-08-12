@@ -71,14 +71,14 @@ const FocusPage = () => {
   const selectedTodo = todos.find(t => t.id === selectedTodoId);
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-8 bg-white dark:bg-gray-900 transition-colors duration-200">
+    <div className="flex-1 flex flex-col items-center justify-center p-8 bg-white dark:bg-gray-900">
       {/* Task Selector */}
       <div className="w-full max-w-xs mb-16">
         <select 
           value={selectedTodoId}
           onChange={(e) => setSelectedTodoId(e.target.value)}
           disabled={isRunning}
-          className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 appearance-none text-gray-700 dark:text-gray-300 text-sm disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed transition-colors duration-200"
+          className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 appearance-none text-gray-700 dark:text-gray-300 text-sm disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed"
         >
           <option value="">Unallocated (No specific task)</option>
           {activeTodos.map(todo => (
@@ -140,7 +140,7 @@ const FocusPage = () => {
       {!isRunning && timeLeft === 5 * 60 && (
         <button
           onClick={startTimer}
-          className="mb-12 px-8 py-3 bg-green-500 hover:bg-green-600 text-white rounded-full font-medium transition-colors duration-200 flex items-center space-x-2"
+          className="mb-12 px-8 py-3 bg-green-500 hover:bg-green-600 text-white rounded-full font-medium flex items-center space-x-2"
         >
           <Play className="w-4 h-4" />
           <span>Start Focus Session</span>
@@ -152,7 +152,7 @@ const FocusPage = () => {
         <div className="flex items-center space-x-4 mb-12">
           <button
             onClick={isRunning ? pauseTimer : startTimer}
-            className="flex items-center justify-center w-14 h-14 bg-green-500 hover:bg-green-600 text-white rounded-full transition-colors duration-200"
+            className="flex items-center justify-center w-14 h-14 bg-green-500 hover:bg-green-600 text-white rounded-full"
           >
             {isRunning ? (
               <Pause className="w-5 h-5" />
@@ -161,7 +161,7 @@ const FocusPage = () => {
             )}
           </button>
           
-          <button className="p-3 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200">
+          <button className="p-3 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
             <Volume2 className="w-5 h-5" />
           </button>
 
@@ -172,7 +172,7 @@ const FocusPage = () => {
                 sessionTimeElapsed.current = 0;
                 sessionStartTime.current = null;
               }}
-              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors duration-200 text-sm"
+              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm"
             >
               Reset
             </button>
@@ -182,15 +182,15 @@ const FocusPage = () => {
 
       {/* Action Buttons */}
       <div className="flex items-center space-x-3">
-        <button className="px-5 py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors duration-200 flex items-center space-x-2">
+        <button className="px-5 py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg flex items-center space-x-2">
           <Settings className="w-4 h-4" />
           <span className="text-sm font-medium">Configure</span>
         </button>
-        <button className="px-5 py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors duration-200 flex items-center space-x-2">
+        <button className="px-5 py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg flex items-center space-x-2">
           <FileText className="w-4 h-4" />
           <span className="text-sm font-medium">Log</span>
         </button>
-        <button className="px-5 py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors duration-200 flex items-center space-x-2">
+        <button className="px-5 py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg flex items-center space-x-2">
           <CheckSquare className="w-4 h-4" />
           <span className="text-sm font-medium">Todo</span>
         </button>

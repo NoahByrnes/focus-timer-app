@@ -43,7 +43,6 @@ export const TagSelector = ({ tags, value, onChange, placeholder = "No tag", dis
           focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 
           text-sm flex items-center justify-between
           ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:border-gray-400 dark:hover:border-gray-500 cursor-pointer'}
-          transition-colors duration-200
         `}
       >
         <div className="flex items-center space-x-2">
@@ -77,8 +76,7 @@ export const TagSelector = ({ tags, value, onChange, placeholder = "No tag", dis
                 setIsOpen(false);
               }}
               className={`
-                w-full px-3 py-2.5 flex items-center space-x-2 hover:bg-gray-50 dark:hover:bg-gray-700 
-                transition-colors duration-150 text-left
+                w-full px-3 py-2.5 flex items-center space-x-2 hover:bg-gray-50 dark:hover:bg-gray-700 text-left
                 ${value === '' ? 'bg-gray-50 dark:bg-gray-700' : ''}
               `}
             >
