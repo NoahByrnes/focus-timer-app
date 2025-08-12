@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Plus, Edit2, Trash2, Check, X, Clock, ChevronDown, ChevronUp, Tag, Settings } from 'lucide-react';
 import { useTodos } from './context/TodoContext';
+import { TagSelector } from './components/TagSelector';
 
 const PlanPage = () => {
   const { todos, tags, loading, error, addTodo, toggleTodo, deleteTodo, updateTodo, updateTodoTag, addTag, deleteTag } = useTodos();
@@ -111,13 +112,13 @@ const PlanPage = () => {
   }
 
   return (
-    <div className="flex-1 flex flex-col p-8 bg-white">
+    <div className="flex-1 flex flex-col p-8 bg-white dark:bg-gray-900 transition-colors duration-200">
       <div className="max-w-4xl w-full mx-auto">
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Todo List</h1>
-            <p className="text-gray-600">Plan your day and track your tasks</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Todo List</h1>
+            <p className="text-gray-600 dark:text-gray-400">Plan your day and track your tasks</p>
           </div>
           <button
             onClick={() => setShowTagManager(!showTagManager)}
@@ -131,29 +132,25 @@ const PlanPage = () => {
         {/* Add Todo */}
         <div className="mb-6">
           <div className="flex items-center space-x-2">
-            <select
-              value={newTodoTagId}
-              onChange={(e) => setNewTodoTagId(e.target.value)}
-              className="px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
-            >
-              <option value="">No tag</option>
-              {tags.map(tag => (
-                <option key={tag.id} value={tag.id}>
-                  {tag.name}
-                </option>
-              ))}
-            </select>
+            <div className="w-40">
+              <TagSelector
+                tags={tags}
+                value={newTodoTagId}
+                onChange={setNewTodoTagId}
+                placeholder="No tag"
+              />
+            </div>
             <input
               type="text"
               value={newTodo}
               onChange={(e) => setNewTodo(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleAddTodo()}
               placeholder="Add a new task..."
-              className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              className="flex-1 px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-gray-900 dark:text-gray-100"
             />
             <button
               onClick={handleAddTodo}
-              className="p-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors duration-200"
+              className="p-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors duration-200"
             >
               <Plus className="w-5 h-5" />
             </button>

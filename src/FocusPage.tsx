@@ -71,14 +71,14 @@ const FocusPage = () => {
   const selectedTodo = todos.find(t => t.id === selectedTodoId);
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-8 bg-white">
+    <div className="flex-1 flex flex-col items-center justify-center p-8 bg-white dark:bg-gray-900 transition-colors duration-200">
       {/* Task Selector */}
       <div className="w-full max-w-xs mb-16">
         <select 
           value={selectedTodoId}
           onChange={(e) => setSelectedTodoId(e.target.value)}
           disabled={isRunning}
-          className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 appearance-none text-gray-700 text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
+          className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 appearance-none text-gray-700 dark:text-gray-300 text-sm disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed transition-colors duration-200"
         >
           <option value="">Unallocated (No specific task)</option>
           {activeTodos.map(todo => (
@@ -121,15 +121,15 @@ const FocusPage = () => {
           </svg>
           
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <p className="text-gray-600 text-lg mb-2 font-medium">
+            <p className="text-gray-600 dark:text-gray-400 text-lg mb-2 font-medium">
               {selectedTodo ? 'Focusing on' : 'Focus'}
             </p>
             {selectedTodo && (
-              <p className="text-sm text-gray-500 mb-2 max-w-[200px] text-center truncate">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-2 max-w-[200px] text-center truncate">
                 {selectedTodo.text}
               </p>
             )}
-            <p className="text-5xl font-light text-gray-900">
+            <p className="text-5xl font-light text-gray-900 dark:text-gray-100">
               {formatTime(timeLeft)}
             </p>
           </div>
@@ -161,7 +161,7 @@ const FocusPage = () => {
             )}
           </button>
           
-          <button className="p-3 text-gray-400 hover:text-gray-600 transition-colors duration-200">
+          <button className="p-3 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200">
             <Volume2 className="w-5 h-5" />
           </button>
 
@@ -182,15 +182,15 @@ const FocusPage = () => {
 
       {/* Action Buttons */}
       <div className="flex items-center space-x-3">
-        <button className="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors duration-200 flex items-center space-x-2">
+        <button className="px-5 py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors duration-200 flex items-center space-x-2">
           <Settings className="w-4 h-4" />
           <span className="text-sm font-medium">Configure</span>
         </button>
-        <button className="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors duration-200 flex items-center space-x-2">
+        <button className="px-5 py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors duration-200 flex items-center space-x-2">
           <FileText className="w-4 h-4" />
           <span className="text-sm font-medium">Log</span>
         </button>
-        <button className="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors duration-200 flex items-center space-x-2">
+        <button className="px-5 py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors duration-200 flex items-center space-x-2">
           <CheckSquare className="w-4 h-4" />
           <span className="text-sm font-medium">Todo</span>
         </button>
