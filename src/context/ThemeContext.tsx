@@ -27,20 +27,12 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   });
 
   useEffect(() => {
-    // Temporarily disable transitions
-    document.documentElement.classList.add('no-transition');
-    
-    // Update document class
+    // Update document class instantly
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
-    
-    // Re-enable transitions after a brief delay
-    setTimeout(() => {
-      document.documentElement.classList.remove('no-transition');
-    }, 1);
     
     // Save to localStorage
     localStorage.setItem('darkMode', JSON.stringify(isDarkMode));

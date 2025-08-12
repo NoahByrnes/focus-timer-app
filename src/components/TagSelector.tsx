@@ -95,7 +95,7 @@ export const TagSelector = ({ tags, value, onChange, placeholder = "No tag", dis
                 }}
                 className={`
                   w-full px-3 py-2.5 flex items-center space-x-2 hover:bg-gray-50 dark:hover:bg-gray-700 
-                  transition-colors duration-150 text-left
+                   text-left
                   ${value === tag.id ? 'bg-gray-50 dark:bg-gray-700' : ''}
                 `}
               >

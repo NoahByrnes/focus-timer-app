@@ -55,15 +55,20 @@ export const useTodos = () => {
 export const TodoProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Start with false to prevent flash
   const [error, setError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [realtimeChannel, setRealtimeChannel] = useState<RealtimeChannel | null>(null);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   // Load initial data and set up real-time subscriptions
   useEffect(() => {
-    loadData();
-    setupRealtimeSubscriptions();
+    if (!hasInitialized) {
+      setHasInitialized(true);
+      setLoading(true);
+      loadData();
+      setupRealtimeSubscriptions();
+    }
 
     // Get current user
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -76,7 +81,9 @@ export const TodoProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         setUserId(session.user.id);
-        loadData();
+        if (hasInitialized) {
+          loadData();
+        }
       } else {
         setUserId(null);
         setTodos([]);
@@ -90,7 +97,7 @@ export const TodoProvider: React.FC<{ children: React.ReactNode }> = ({ children
         supabase.removeChannel(realtimeChannel);
       }
     };
-  }, []);
+  }, [hasInitialized]);
 
   const setupRealtimeSubscriptions = () => {
     // Set up real-time subscriptions for todos

@@ -95,18 +95,11 @@ const PlanPage = () => {
   const activeTodos = todos.filter(todo => !todo.completed);
   const completedTodos = todos.filter(todo => todo.completed);
 
-  if (loading) {
+  // Only show loading on initial load, not on every re-render
+  if (loading && todos.length === 0 && tags.length === 0) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-white">
-        <div className="text-gray-500">Loading...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex-1 flex items-center justify-center bg-white">
-        <div className="text-red-500">Error: {error}</div>
+      <div className="flex-1 flex items-center justify-center bg-white dark:bg-gray-900">
+        <div className="text-gray-500 dark:text-gray-400">Loading...</div>
       </div>
     );
   }
@@ -122,7 +115,7 @@ const PlanPage = () => {
           </div>
           <button
             onClick={() => setShowTagManager(!showTagManager)}
-            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors duration-200 flex items-center space-x-2"
+            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg  flex items-center space-x-2"
           >
             <Settings className="w-4 h-4" />
             <span className="text-sm font-medium">Manage Tags</span>
@@ -150,7 +143,7 @@ const PlanPage = () => {
             />
             <button
               onClick={handleAddTodo}
-              className="p-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors duration-200"
+              className="p-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg "
             >
               <Plus className="w-5 h-5" />
             </button>
@@ -161,7 +154,7 @@ const PlanPage = () => {
         <div className="flex items-center space-x-4 mb-6 border-b border-gray-200 pb-4">
           <button
             onClick={() => setFilter('all')}
-            className={`px-1 text-sm font-medium transition-colors duration-200 ${
+            className={`px-1 text-sm font-medium  ${
               filter === 'all' 
                 ? 'text-green-600 border-b-2 border-green-600' 
                 : 'text-gray-500 hover:text-gray-700'
@@ -171,7 +164,7 @@ const PlanPage = () => {
           </button>
           <button
             onClick={() => setFilter('active')}
-            className={`px-1 text-sm font-medium transition-colors duration-200 ${
+            className={`px-1 text-sm font-medium  ${
               filter === 'active' 
                 ? 'text-green-600 border-b-2 border-green-600' 
                 : 'text-gray-500 hover:text-gray-700'
@@ -181,7 +174,7 @@ const PlanPage = () => {
           </button>
           <button
             onClick={() => setFilter('completed')}
-            className={`px-1 text-sm font-medium transition-colors duration-200 ${
+            className={`px-1 text-sm font-medium  ${
               filter === 'completed' 
                 ? 'text-green-600 border-b-2 border-green-600' 
                 : 'text-gray-500 hover:text-gray-700'
@@ -215,10 +208,10 @@ const PlanPage = () => {
                   <div className="space-y-2">
                     {activeTodos.map(todo => (
                       <div key={todo.id}>
-                        <div className="flex items-center space-x-3 p-4 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition-shadow duration-200">
+                        <div className="flex items-center space-x-3 p-4 bg-white border border-gray-200 rounded-lg hover:shadow-sm">
                           <button
                             onClick={() => toggleTodo(todo.id)}
-                            className="w-5 h-5 border-2 border-gray-300 rounded-full hover:border-green-500 transition-colors duration-200"
+                            className="w-5 h-5 border-2 border-gray-300 rounded-full hover:border-green-500 "
                           />
                           {editingId === todo.id ? (
                             <>

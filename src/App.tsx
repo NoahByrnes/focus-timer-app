@@ -121,11 +121,11 @@ const MainApp = () => {
               )}
               <span className="text-sm">{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
             </button>
-            <button className="flex items-center space-x-3 px-3 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg w-full text-left transition-colors duration-200">
+            <button className="flex items-center space-x-3 px-3 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg w-full text-left ">
               <Settings className="w-4 h-4" />
               <span className="text-sm">Settings</span>
             </button>
-            <button className="flex items-center space-x-3 px-3 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg w-full text-left transition-colors duration-200">
+            <button className="flex items-center space-x-3 px-3 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg w-full text-left ">
               <User className="w-4 h-4" />
               <span className="text-sm">Profile</span>
             </button>

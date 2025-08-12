@@ -2,22 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Smooth dark mode transitions */
+/* Remove all transitions for instant dark mode switching */
 @layer base {
-  /* Apply transitions only to color properties */
-  * {
-    transition-property: background-color, border-color, color, fill, stroke;
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    transition-duration: 150ms;
-  }
-  
-  /* Keep transform transitions separate */
+  /* Keep only necessary transitions like dropdown arrows */
   .transition-transform {
     transition-property: transform !important;
-  }
-  
-  /* Disable transitions on theme switch to prevent lag */
-  html.no-transition * {
-    transition: none !important;
+    transition-duration: 200ms;
   }
 }
