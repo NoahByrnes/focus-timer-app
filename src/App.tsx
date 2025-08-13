@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, NavLink, Navigate } from 'react-router-dom';
-import { Target, Calendar, BarChart3, FileText, Settings, LogOut, User, Moon, Sun } from 'lucide-react';
+import { Target, Calendar, BarChart3, FileText, Settings, LogOut, User, Moon, Sun, ChevronDown } from 'lucide-react';
 import FocusPage from './FocusPage';
 import PlanPage from './PlanPage';
 import ReviewPage from './ReviewPage';
@@ -32,6 +33,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 const MainApp = () => {
   const { user, signOut } = useAuth();
   const { isDarkMode, toggleDarkMode } = useTheme();
+  const [isAnalyzeOpen, setIsAnalyzeOpen] = useState(false);
+  const [analyzeTimeRange, setAnalyzeTimeRange] = useState<'day' | 'week' | 'month' | 'year'>('week');
 
   const handleSignOut = async () => {
     await signOut();
@@ -101,20 +104,70 @@ const MainApp = () => {
                 <span className="text-sm">Review</span>
               </NavLink>
             </li>
-            <li>
-              <NavLink
-                to="/analyze"
-                className={({ isActive }) =>
-                  `flex items-center space-x-3 px-3 py-2.5 w-full text-left rounded-lg ${
-                    isActive
-                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
-                  }`
-                }
+            <li className="relative">
+              <button
+                onClick={() => setIsAnalyzeOpen(!isAnalyzeOpen)}
+                className={`flex items-center justify-between px-3 py-2.5 w-full text-left rounded-lg ${
+                  window.location.pathname === '/analyze'
+                    ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
+                }`}
               >
-                <BarChart3 className="w-4 h-4" />
-                <span className="text-sm">Analyze</span>
-              </NavLink>
+                <div className="flex items-center space-x-3">
+                  <BarChart3 className="w-4 h-4" />
+                  <span className="text-sm">Analyze</span>
+                </div>
+                <ChevronDown className={`w-3 h-3 transition-transform ${isAnalyzeOpen ? 'rotate-0' : '-rotate-90'}`} />
+              </button>
+              
+              {isAnalyzeOpen && (
+                <div className="ml-7 mt-1 space-y-1">
+                  <NavLink
+                    to="/analyze?range=day"
+                    onClick={() => setAnalyzeTimeRange('day')}
+                    className={`block px-3 py-2 text-sm rounded-lg ${
+                      analyzeTimeRange === 'day'
+                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
+                    }`}
+                  >
+                    Day
+                  </NavLink>
+                  <NavLink
+                    to="/analyze?range=week"
+                    onClick={() => setAnalyzeTimeRange('week')}
+                    className={`block px-3 py-2 text-sm rounded-lg ${
+                      analyzeTimeRange === 'week'
+                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
+                    }`}
+                  >
+                    Week
+                  </NavLink>
+                  <NavLink
+                    to="/analyze?range=month"
+                    onClick={() => setAnalyzeTimeRange('month')}
+                    className={`block px-3 py-2 text-sm rounded-lg ${
+                      analyzeTimeRange === 'month'
+                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
+                    }`}
+                  >
+                    Month
+                  </NavLink>
+                  <NavLink
+                    to="/analyze?range=year"
+                    onClick={() => setAnalyzeTimeRange('year')}
+                    className={`block px-3 py-2 text-sm rounded-lg ${
+                      analyzeTimeRange === 'year'
+                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
+                    }`}
+                  >
+                    Year
+                  </NavLink>
+                </div>
+              )}
             </li>
           </ul>
         </nav>
@@ -199,7 +252,7 @@ const MainApp = () => {
         } />
         <Route path="/analyze" element={
           <ProtectedRoute>
-            <AnalyzePage />
+            <AnalyzePage timeRange={analyzeTimeRange} />
           </ProtectedRoute>
         } />
         <Route path="/settings" element={

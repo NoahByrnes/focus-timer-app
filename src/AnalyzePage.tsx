@@ -17,9 +17,12 @@ interface TimeDistribution {
   time: number;
 }
 
-const AnalyzePage = () => {
+interface AnalyzePageProps {
+  timeRange?: 'day' | 'week' | 'month' | 'year';
+}
+
+const AnalyzePage = ({ timeRange = 'week' }: AnalyzePageProps) => {
   const { todos, tags } = useTodos();
-  const [timeRange, setTimeRange] = useState<'day' | 'week' | 'month' | 'year'>('week');
   const [tagStats, setTagStats] = useState<TagStats[]>([]);
   const [timeDistribution, setTimeDistribution] = useState<TimeDistribution[]>([]);
   const [productiveDays, setProductiveDays] = useState<string[]>([]);
@@ -277,50 +280,6 @@ const AnalyzePage = () => {
             {timeRange === 'month' && 'Your productivity over the last 30 days'}
             {timeRange === 'year' && 'Your productivity over the past year'}
           </p>
-        </div>
-
-        {/* Time Range Selector */}
-        <div className="flex items-center space-x-2 mb-6">
-          <button
-            onClick={() => setTimeRange('day')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium ${
-              timeRange === 'day'
-                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
-            }`}
-          >
-            Day
-          </button>
-          <button
-            onClick={() => setTimeRange('week')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium ${
-              timeRange === 'week'
-                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
-            }`}
-          >
-            Week
-          </button>
-          <button
-            onClick={() => setTimeRange('month')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium ${
-              timeRange === 'month'
-                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
-            }`}
-          >
-            Month
-          </button>
-          <button
-            onClick={() => setTimeRange('year')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium ${
-              timeRange === 'year'
-                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
-            }`}
-          >
-            Year
-          </button>
         </div>
 
         {/* Stats Grid - Common for all views */}
