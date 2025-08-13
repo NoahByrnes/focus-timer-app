@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { Play, Pause, Volume2, Settings, FileText, CheckSquare, Timer } from 'lucide-react';
+import { Play, Pause, Volume2, Settings, FileText, CheckSquare, Timer, X, Plus, Minus } from 'lucide-react';
 import { useTodos } from './context/TodoContext';
 
-type TimerMode = 'pomodoro' | '52-17' | 'flowtime' | '90-20' | '2-minute' | 'reverse-pomodoro' | 'stopwatch' | 'custom';
+type TimerMode = 'pomodoro' | '52-17' | 'flowtime' | '90-20' | '2-minute' | 'reverse-pomodoro' | 'stopwatch';
 
 interface TimerConfig {
   name: string;
@@ -55,12 +55,6 @@ const timerConfigs: Record<TimerMode, TimerConfig> = {
     workTime: 0,
     breakTime: 0,
   },
-  'custom': {
-    name: 'Custom',
-    description: 'Set your own times',
-    workTime: 25 * 60, // Default values
-    breakTime: 5 * 60,
-  },
 };
 
 const FocusPage = () => {
@@ -71,9 +65,24 @@ const FocusPage = () => {
   const [elapsedTime, setElapsedTime] = useState(0); // For stopwatch and flowtime
   const [selectedTodoId, setSelectedTodoId] = useState('');
   const [showModeSelector, setShowModeSelector] = useState(false);
-  const [customWorkTime, setCustomWorkTime] = useState(25); // in minutes
-  const [customBreakTime, setCustomBreakTime] = useState(5); // in minutes
-  const [showCustomSettings, setShowCustomSettings] = useState(false);
+  const [showConfigureMenu, setShowConfigureMenu] = useState(false);
+  const [showLogMenu, setShowLogMenu] = useState(false);
+  const [showTodoMenu, setShowTodoMenu] = useState(false);
+  const [sessionNote, setSessionNote] = useState('');
+  const [iterations, setIterations] = useState(1);
+  const [currentIteration, setCurrentIteration] = useState(1);
+  
+  // Configurable durations for each mode (in minutes)
+  const [modeDurations, setModeDurations] = useState<Record<TimerMode, { work: number; break: number }>>({
+    'pomodoro': { work: 25, break: 5 },
+    '52-17': { work: 52, break: 17 },
+    'flowtime': { work: 0, break: 5 },
+    '90-20': { work: 90, break: 20 },
+    '2-minute': { work: 2, break: 1 },
+    'reverse-pomodoro': { work: 25, break: 5 },
+    'stopwatch': { work: 0, break: 0 },
+  });
+  
   const sessionStartTime = useRef<Date | null>(null);
   const sessionTimeElapsed = useRef(0);
   
@@ -82,14 +91,12 @@ const FocusPage = () => {
 
   // Get current timer configuration
   const getCurrentConfig = () => {
-    if (timerMode === 'custom') {
-      return {
-        ...timerConfigs.custom,
-        workTime: customWorkTime * 60,
-        breakTime: customBreakTime * 60,
-      };
-    }
-    return timerConfigs[timerMode];
+    const durations = modeDurations[timerMode];
+    return {
+      ...timerConfigs[timerMode],
+      workTime: durations.work * 60,
+      breakTime: durations.break * 60,
+    };
   };
 
   // Timer logic
@@ -158,9 +165,19 @@ const FocusPage = () => {
     
     // Toggle between work and break
     if (isBreakTime) {
-      // Break is over, start work
-      setIsBreakTime(false);
-      setTimeLeft(config.workTime);
+      // Break is over, check if we need another iteration
+      if (currentIteration < iterations) {
+        setCurrentIteration(prev => prev + 1);
+        setIsBreakTime(false);
+        setTimeLeft(config.workTime);
+        // Auto-start next work session
+        setIsRunning(true);
+      } else {
+        // All iterations complete
+        setIsBreakTime(false);
+        setTimeLeft(config.workTime);
+        setCurrentIteration(1);
+      }
     } else {
       // Work is over, start break (if applicable)
       saveSession();
@@ -169,8 +186,15 @@ const FocusPage = () => {
         setTimeLeft(config.breakTime);
         // Auto-start break
         setIsRunning(true);
-      } else {
+      } else if (currentIteration < iterations) {
+        // No break, but more iterations to go
+        setCurrentIteration(prev => prev + 1);
         setTimeLeft(config.workTime);
+        setIsRunning(true);
+      } else {
+        // All iterations complete
+        setTimeLeft(config.workTime);
+        setCurrentIteration(1);
       }
     }
   };
@@ -198,16 +222,32 @@ const FocusPage = () => {
     setIsBreakTime(false);
     setElapsedTime(0);
     sessionTimeElapsed.current = 0;
+    setCurrentIteration(1);
     
-    if (mode === 'custom') {
-      setShowCustomSettings(true);
-      setTimeLeft(customWorkTime * 60);
-    } else {
-      const config = timerConfigs[mode];
-      setTimeLeft(config.workTime);
-    }
+    const durations = modeDurations[mode];
+    setTimeLeft(durations.work * 60);
     
     setShowModeSelector(false);
+  };
+
+  const updateModeDuration = (mode: TimerMode, type: 'work' | 'break', value: number) => {
+    const newDurations = {
+      ...modeDurations,
+      [mode]: {
+        ...modeDurations[mode],
+        [type]: Math.max(type === 'break' ? 0 : 1, value)
+      }
+    };
+    setModeDurations(newDurations);
+    
+    // Update current timer if it's the active mode
+    if (mode === timerMode && !isRunning) {
+      if (type === 'work' && !isBreakTime) {
+        setTimeLeft(newDurations[mode].work * 60);
+      } else if (type === 'break' && isBreakTime) {
+        setTimeLeft(newDurations[mode].break * 60);
+      }
+    }
   };
 
   const saveSession = async () => {
@@ -290,54 +330,281 @@ const FocusPage = () => {
         </div>
       )}
 
-      {/* Custom Time Settings Modal */}
-      {showCustomSettings && timerMode === 'custom' && (
+      {/* Configure Menu Modal */}
+      {showConfigureMenu && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Custom Timer Settings</h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Configure Timer</h2>
+              <button
+                onClick={() => setShowConfigureMenu(false)}
+                className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="space-y-6">
+              {/* Focus Duration */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                  Focus Duration
+                </label>
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={() => updateModeDuration(timerMode, 'work', modeDurations[timerMode].work - 1)}
+                    className="w-8 h-8 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg flex items-center justify-center"
+                    disabled={modeDurations[timerMode].work <= 1}
+                  >
+                    <Minus className="w-4 h-4" />
+                  </button>
+                  <div className="flex-1">
+                    <input
+                      type="range"
+                      min="1"
+                      max="120"
+                      value={modeDurations[timerMode].work}
+                      onChange={(e) => updateModeDuration(timerMode, 'work', parseInt(e.target.value))}
+                      className="w-full"
+                    />
+                    <div className="text-center mt-1 text-2xl font-semibold text-gray-900 dark:text-gray-100">
+                      {modeDurations[timerMode].work} min
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => updateModeDuration(timerMode, 'work', modeDurations[timerMode].work + 1)}
+                    className="w-8 h-8 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg flex items-center justify-center"
+                    disabled={modeDurations[timerMode].work >= 120}
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Break Duration */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                  Break Duration
+                </label>
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={() => updateModeDuration(timerMode, 'break', modeDurations[timerMode].break - 1)}
+                    className="w-8 h-8 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg flex items-center justify-center"
+                    disabled={modeDurations[timerMode].break <= 0}
+                  >
+                    <Minus className="w-4 h-4" />
+                  </button>
+                  <div className="flex-1">
+                    <input
+                      type="range"
+                      min="0"
+                      max="30"
+                      value={modeDurations[timerMode].break}
+                      onChange={(e) => updateModeDuration(timerMode, 'break', parseInt(e.target.value))}
+                      className="w-full"
+                    />
+                    <div className="text-center mt-1 text-2xl font-semibold text-gray-900 dark:text-gray-100">
+                      {modeDurations[timerMode].break} min
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => updateModeDuration(timerMode, 'break', modeDurations[timerMode].break + 1)}
+                    className="w-8 h-8 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg flex items-center justify-center"
+                    disabled={modeDurations[timerMode].break >= 30}
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Iterations */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                  Iterations
+                </label>
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={() => setIterations(Math.max(1, iterations - 1))}
+                    className="w-8 h-8 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg flex items-center justify-center"
+                    disabled={iterations <= 1}
+                  >
+                    <Minus className="w-4 h-4" />
+                  </button>
+                  <div className="flex-1 text-center">
+                    <div className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+                      {iterations}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setIterations(Math.min(10, iterations + 1))}
+                    className="w-8 h-8 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg flex items-center justify-center"
+                    disabled={iterations >= 10}
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Session Preview */}
+              <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
+                <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Session Preview</div>
+                <div className="flex items-center space-x-1">
+                  {Array.from({ length: iterations }).map((_, i) => (
+                    <div key={i} className="flex items-center">
+                      <div className="bg-green-500 h-2 rounded" style={{ width: `${modeDurations[timerMode].work * 2}px` }} />
+                      {modeDurations[timerMode].break > 0 && i < iterations - 1 && (
+                        <div className="bg-blue-500 h-2 rounded ml-1" style={{ width: `${modeDurations[timerMode].break * 2}px` }} />
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                  Total: {modeDurations[timerMode].work * iterations + modeDurations[timerMode].break * (iterations - 1)} minutes
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setShowConfigureMenu(false)}
+              className="mt-6 w-full py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Log Menu Modal */}
+      {showLogMenu && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Session Notes</h2>
+              <button
+                onClick={() => setShowLogMenu(false)}
+                className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Work Time (minutes)
+                  Add notes for this session
                 </label>
-                <input
-                  type="number"
-                  value={customWorkTime}
-                  onChange={(e) => setCustomWorkTime(Math.max(1, parseInt(e.target.value) || 1))}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                  min="1"
+                <textarea
+                  value={sessionNote}
+                  onChange={(e) => setSessionNote(e.target.value)}
+                  placeholder="What did you accomplish? Any thoughts or reflections?"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 resize-none"
+                  rows={5}
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Break Time (minutes)
-                </label>
-                <input
-                  type="number"
-                  value={customBreakTime}
-                  onChange={(e) => setCustomBreakTime(Math.max(0, parseInt(e.target.value) || 0))}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                  min="0"
-                />
+              
+              <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="flex items-center justify-between mb-2">
+                    <span>Current Session:</span>
+                    <span className="font-medium text-gray-900 dark:text-gray-100">
+                      {selectedTodo ? todos.find(t => t.id === selectedTodoId)?.text : 'Unallocated'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Time Elapsed:</span>
+                    <span className="font-medium text-gray-900 dark:text-gray-100">
+                      {formatTime(sessionTimeElapsed.current)}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
+
             <div className="flex space-x-3 mt-6">
               <button
                 onClick={() => {
-                  setTimeLeft(customWorkTime * 60);
-                  setShowCustomSettings(false);
+                  // Save note logic would go here
+                  setShowLogMenu(false);
                 }}
-                className="flex-1 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg"
+                className="flex-1 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium"
               >
-                Apply
+                Save Note
               </button>
               <button
-                onClick={() => setShowCustomSettings(false)}
+                onClick={() => setShowLogMenu(false)}
                 className="flex-1 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg"
               >
                 Cancel
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Todo Menu Modal */}
+      {showTodoMenu && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4 max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Active Tasks</h2>
+              <button
+                onClick={() => setShowTodoMenu(false)}
+                className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto">
+              {activeTodos.length === 0 ? (
+                <div className="text-center py-8">
+                  <CheckSquare className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+                  <p className="text-gray-500 dark:text-gray-400">No active tasks</p>
+                  <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">Add tasks from the Plan page</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {activeTodos.map(todo => (
+                    <button
+                      key={todo.id}
+                      onClick={() => {
+                        setSelectedTodoId(todo.id);
+                        setShowTodoMenu(false);
+                      }}
+                      className={`w-full text-left p-3 rounded-lg border transition-colors ${
+                        selectedTodoId === todo.id
+                          ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
+                          : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-900 dark:text-gray-100">{todo.text}</span>
+                        {todo.totalTime > 0 && (
+                          <span className="text-sm text-gray-500 dark:text-gray-400">
+                            {formatTime(todo.totalTime)}
+                          </span>
+                        )}
+                      </div>
+                      {todo.tagId && (() => {
+                        const tag = todos.find(t => t.id === todo.tagId);
+                        return tag ? (
+                          <div className="mt-2 inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400">
+                            {tag.text}
+                          </div>
+                        ) : null;
+                      })()}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={() => setShowTodoMenu(false)}
+              className="mt-4 w-full py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg"
+            >
+              Close
+            </button>
           </div>
         </div>
       )}
@@ -479,15 +746,24 @@ const FocusPage = () => {
 
       {/* Action Buttons */}
       <div className="flex items-center space-x-3">
-        <button className="px-5 py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg flex items-center space-x-2">
+        <button 
+          onClick={() => setShowConfigureMenu(true)}
+          className="px-5 py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg flex items-center space-x-2"
+        >
           <Settings className="w-4 h-4" />
           <span className="text-sm font-medium">Configure</span>
         </button>
-        <button className="px-5 py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg flex items-center space-x-2">
+        <button 
+          onClick={() => setShowLogMenu(true)}
+          className="px-5 py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg flex items-center space-x-2"
+        >
           <FileText className="w-4 h-4" />
           <span className="text-sm font-medium">Log</span>
         </button>
-        <button className="px-5 py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg flex items-center space-x-2">
+        <button 
+          onClick={() => setShowTodoMenu(true)}
+          className="px-5 py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg flex items-center space-x-2"
+        >
           <CheckSquare className="w-4 h-4" />
           <span className="text-sm font-medium">Todo</span>
         </button>
