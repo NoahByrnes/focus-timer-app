@@ -19,10 +19,11 @@ interface TimeDistribution {
 
 const AnalyzePage = () => {
   const { todos, tags } = useTodos();
-  const [timeRange, setTimeRange] = useState<'week' | 'month' | 'all'>('month');
+  const [timeRange, setTimeRange] = useState<'week' | 'month' | 'year' | 'all'>('month');
   const [tagStats, setTagStats] = useState<TagStats[]>([]);
   const [timeDistribution, setTimeDistribution] = useState<TimeDistribution[]>([]);
   const [productiveDays, setProductiveDays] = useState<string[]>([]);
+  const [dailyData, setDailyData] = useState<Map<string, number>>(new Map());
 
   useEffect(() => {
     calculateAnalytics();
@@ -37,6 +38,8 @@ const AnalyzePage = () => {
       startDate.setDate(now.getDate() - 7);
     } else if (timeRange === 'month') {
       startDate.setDate(now.getDate() - 30);
+    } else if (timeRange === 'year') {
+      startDate.setFullYear(now.getFullYear() - 1);
     } else {
       startDate.setFullYear(2020); // All time
     }
@@ -76,6 +79,9 @@ const AnalyzePage = () => {
 
     // Track productive days
     const dayProductivity: Map<string, number> = new Map();
+    
+    // Track daily data for contribution grid
+    const dailyDataMap: Map<string, number> = new Map();
 
     // Process todos
     todos.forEach(todo => {
@@ -103,6 +109,10 @@ const AnalyzePage = () => {
             // Track day productivity
             const dayKey = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][sessionDate.getDay()];
             dayProductivity.set(dayKey, (dayProductivity.get(dayKey) || 0) + session.duration);
+            
+            // Track daily data for contribution grid (YYYY-MM-DD format)
+            const dailyKey = sessionDate.toISOString().split('T')[0];
+            dailyDataMap.set(dailyKey, (dailyDataMap.get(dailyKey) || 0) + session.duration);
           }
         });
       }
@@ -125,6 +135,9 @@ const AnalyzePage = () => {
       .sort((a, b) => b[1] - a[1])
       .map(([day]) => day);
     setProductiveDays(sortedDays.slice(0, 3));
+    
+    // Set daily data for contribution grid
+    setDailyData(dailyDataMap);
   };
 
   const formatTime = (seconds: number) => {
@@ -158,6 +171,57 @@ const AnalyzePage = () => {
     });
 
   const maxDistributionTime = Math.max(...timeDistribution.map(d => d.time), 1);
+
+  // Get color intensity for contribution grid
+  const getColorIntensity = (studyTime: number) => {
+    if (studyTime === 0) return 'bg-gray-200 dark:bg-gray-800'; // No study - gray
+    
+    // Calculate max study time for normalization
+    const maxTime = Math.max(...Array.from(dailyData.values()), 1);
+    const intensity = Math.min(studyTime / maxTime, 1);
+    
+    if (intensity <= 0.25) return 'bg-green-200 dark:bg-green-900'; // Light green
+    if (intensity <= 0.5) return 'bg-green-300 dark:bg-green-800';  // Medium light
+    if (intensity <= 0.75) return 'bg-green-500 dark:bg-green-600'; // Medium
+    return 'bg-green-700 dark:bg-green-500'; // Dark green
+  };
+
+  // Generate contribution grid data for the past year
+  const generateContributionGrid = () => {
+    const grid = [];
+    const today = new Date();
+    const oneYearAgo = new Date(today);
+    oneYearAgo.setFullYear(today.getFullYear() - 1);
+    
+    // Find the start of the week containing one year ago
+    const startDate = new Date(oneYearAgo);
+    startDate.setDate(startDate.getDate() - startDate.getDay()); // Go to Sunday
+    
+    // Generate 53 weeks (371 days to ensure full year coverage)
+    for (let week = 0; week < 53; week++) {
+      const weekData = [];
+      for (let day = 0; day < 7; day++) {
+        const currentDate = new Date(startDate);
+        currentDate.setDate(startDate.getDate() + (week * 7) + day);
+        
+        if (currentDate <= today) {
+          const dateKey = currentDate.toISOString().split('T')[0];
+          const studyTime = dailyData.get(dateKey) || 0;
+          weekData.push({
+            date: currentDate,
+            dateKey,
+            studyTime,
+            colorClass: getColorIntensity(studyTime)
+          });
+        } else {
+          weekData.push(null); // Future dates
+        }
+      }
+      grid.push(weekData);
+    }
+    
+    return grid;
+  };
 
   // Calculate trend (compare to previous period)
   const previousPeriodTime = totalTime * 0.8; // Mock data for trend
@@ -196,6 +260,16 @@ const AnalyzePage = () => {
             Last 30 days
           </button>
           <button
+            onClick={() => setTimeRange('year')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium ${
+              timeRange === 'year'
+                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+            }`}
+          >
+            Last year
+          </button>
+          <button
             onClick={() => setTimeRange('all')}
             className={`px-4 py-2 rounded-lg text-sm font-medium ${
               timeRange === 'all'
@@ -206,6 +280,89 @@ const AnalyzePage = () => {
             All time
           </button>
         </div>
+
+        {/* Contribution Grid - Year View */}
+        {timeRange === 'year' && (
+          <div className="mb-8 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Study Activity</h2>
+              <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+                <span>Less</span>
+                <div className="flex space-x-1">
+                  <div className="w-3 h-3 bg-gray-200 dark:bg-gray-800 rounded-sm"></div>
+                  <div className="w-3 h-3 bg-green-200 dark:bg-green-900 rounded-sm"></div>
+                  <div className="w-3 h-3 bg-green-300 dark:bg-green-800 rounded-sm"></div>
+                  <div className="w-3 h-3 bg-green-500 dark:bg-green-600 rounded-sm"></div>
+                  <div className="w-3 h-3 bg-green-700 dark:bg-green-500 rounded-sm"></div>
+                </div>
+                <span>More</span>
+              </div>
+            </div>
+            
+            <div className="overflow-x-auto">
+              <div className="flex space-x-1">
+                {/* Day labels */}
+                <div className="flex flex-col space-y-1 mr-2">
+                  <div className="h-3"></div> {/* Spacer for month labels */}
+                  <div className="text-xs text-gray-500 dark:text-gray-400 h-3 flex items-center">Mon</div>
+                  <div className="h-3"></div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 h-3 flex items-center">Wed</div>
+                  <div className="h-3"></div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 h-3 flex items-center">Fri</div>
+                  <div className="h-3"></div>
+                </div>
+                
+                {/* Grid */}
+                <div className="flex flex-col">
+                  {/* Month labels */}
+                  <div className="flex mb-1">
+                    {generateContributionGrid().map((week, weekIndex) => {
+                      const firstDay = week.find(day => day !== null);
+                      if (!firstDay || weekIndex % 4 !== 0) return <div key={weekIndex} className="w-3"></div>;
+                      
+                      const monthName = firstDay.date.toLocaleDateString('en-US', { month: 'short' });
+                      return (
+                        <div key={weekIndex} className="text-xs text-gray-500 dark:text-gray-400 w-3">
+                          {monthName}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  
+                  {/* Days grid */}
+                  <div className="flex space-x-1">
+                    {generateContributionGrid().map((week, weekIndex) => (
+                      <div key={weekIndex} className="flex flex-col space-y-1">
+                        {week.map((day, dayIndex) => (
+                          <div
+                            key={dayIndex}
+                            className={`w-3 h-3 rounded-sm ${
+                              day ? day.colorClass : 'bg-transparent'
+                            }`}
+                            title={day ? `${day.date.toLocaleDateString('en-US', { 
+                              month: 'short', 
+                              day: 'numeric', 
+                              year: 'numeric' 
+                            })}: ${formatTime(day.studyTime)}` : ''}
+                          />
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
+              <span>
+                {dailyData.size > 0 
+                  ? `${Array.from(dailyData.values()).filter(time => time > 0).length} days with study activity in the past year`
+                  : 'No study activity recorded in the past year'
+                }
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
