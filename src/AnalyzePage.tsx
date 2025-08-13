@@ -315,89 +315,170 @@ const AnalyzePage = () => {
           </button>
         </div>
 
-        {/* Contribution Grid - Year View */}
+        {/* Year View Analytics */}
         {timeRange === 'year' && (
-          <div className="mb-8 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Study Activity</h2>
-              <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-                <span>Less</span>
-                <div className="flex space-x-1">
-                  <div className="w-3 h-3 bg-gray-200 dark:bg-gray-800 rounded-sm"></div>
-                  <div className="w-3 h-3 bg-green-200 dark:bg-green-900 rounded-sm"></div>
-                  <div className="w-3 h-3 bg-green-300 dark:bg-green-800 rounded-sm"></div>
-                  <div className="w-3 h-3 bg-green-500 dark:bg-green-600 rounded-sm"></div>
-                  <div className="w-3 h-3 bg-green-700 dark:bg-green-500 rounded-sm"></div>
+          <div className="mb-8 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-8">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Study Activity</h2>
+              <div className="text-lg font-semibold text-gray-700 dark:text-gray-300">
+                {new Date().getFullYear()}
+              </div>
+            </div>
+
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+              <div className="text-center">
+                <div className="flex items-center justify-center w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg mx-auto mb-2">
+                  <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 </div>
-                <span>More</span>
+                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  {formatTime(totalTime)}
+                </div>
+                <div className="text-sm text-blue-600 dark:text-blue-400 font-medium">Focus Time</div>
+              </div>
+
+              <div className="text-center">
+                <div className="flex items-center justify-center w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg mx-auto mb-2">
+                  <Target className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                </div>
+                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  {totalSessions}
+                </div>
+                <div className="text-sm text-purple-600 dark:text-purple-400 font-medium">Sessions</div>
+              </div>
+
+              <div className="text-center">
+                <div className="flex items-center justify-center w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg mx-auto mb-2">
+                  <Calendar className="w-5 h-5 text-green-600 dark:text-green-400" />
+                </div>
+                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  {Array.from(dailyData.values()).filter(time => time > 0).length}
+                </div>
+                <div className="text-sm text-green-600 dark:text-green-400 font-medium">Focus Days</div>
+              </div>
+
+              <div className="text-center">
+                <div className="flex items-center justify-center w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg mx-auto mb-2">
+                  <BarChart3 className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  {averageSessionLength}m
+                </div>
+                <div className="text-sm text-indigo-600 dark:text-indigo-400 font-medium">Avg Session</div>
+              </div>
+
+              <div className="text-center">
+                <div className="flex items-center justify-center w-10 h-10 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg mx-auto mb-2">
+                  <TrendingUp className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+                </div>
+                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  {Array.from(dailyData.values()).length > 0 ? Math.max(...Array.from(dailyData.values())) > 0 ? formatTime(Math.max(...Array.from(dailyData.values()))) : '0m' : '0m'}
+                </div>
+                <div className="text-sm text-yellow-600 dark:text-yellow-400 font-medium">Best Day</div>
+              </div>
+
+              <div className="text-center">
+                <div className="flex items-center justify-center w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-lg mx-auto mb-2">
+                  <Calendar className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                </div>
+                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  {(() => {
+                    // Calculate best week (7-day period with most study time)
+                    const weekTotals = new Map<string, number>();
+                    Array.from(dailyData.entries()).forEach(([date, time]) => {
+                      const d = new Date(date);
+                      const startOfWeek = new Date(d);
+                      startOfWeek.setDate(d.getDate() - d.getDay());
+                      const weekKey = startOfWeek.toISOString().split('T')[0];
+                      weekTotals.set(weekKey, (weekTotals.get(weekKey) || 0) + time);
+                    });
+                    const maxWeekTime = Math.max(...Array.from(weekTotals.values()), 0);
+                    return maxWeekTime > 0 ? formatTime(maxWeekTime) : '0m';
+                  })()}
+                </div>
+                <div className="text-sm text-orange-600 dark:text-orange-400 font-medium">Best Week</div>
               </div>
             </div>
             
-            <div className="overflow-x-auto relative">
-              <div className="flex space-x-1">
-                {/* Day labels */}
-                <div className="flex flex-col space-y-1 mr-3">
-                  <div className="h-4"></div> {/* Spacer for month labels */}
-                  <div className="text-xs text-gray-500 dark:text-gray-400 h-3 flex items-center">Sun</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400 h-3 flex items-center">Mon</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400 h-3 flex items-center">Tue</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400 h-3 flex items-center">Wed</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400 h-3 flex items-center">Thu</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400 h-3 flex items-center">Fri</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400 h-3 flex items-center">Sat</div>
+            {/* Contribution Grid */}
+            <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-6">
+              <div className="flex items-center justify-end mb-4">
+                <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+                  <span>Less</span>
+                  <div className="flex space-x-1">
+                    <div className="w-3 h-3 bg-gray-200 dark:bg-gray-700 rounded-sm"></div>
+                    <div className="w-3 h-3 bg-green-200 dark:bg-green-900 rounded-sm"></div>
+                    <div className="w-3 h-3 bg-green-300 dark:bg-green-800 rounded-sm"></div>
+                    <div className="w-3 h-3 bg-green-500 dark:bg-green-600 rounded-sm"></div>
+                    <div className="w-3 h-3 bg-green-700 dark:bg-green-500 rounded-sm"></div>
+                  </div>
+                  <span>More</span>
                 </div>
-                
-                {/* Monthly grids */}
+              </div>
+
+              <div className="overflow-x-auto">
                 <div className="flex space-x-4">
-                  {generateContributionGrid().map((monthData, monthIndex) => (
-                    <div key={monthIndex} className="flex flex-col">
-                      {/* Month label */}
-                      <div className="text-xs text-gray-500 dark:text-gray-400 mb-1 h-4 flex items-center justify-center">
-                        {monthData.monthName}
+                  {generateContributionGrid().map((monthData, monthIndex) => {
+                    // Calculate monthly total
+                    const monthTotal = monthData.grid.flat()
+                      .filter(day => day && day.isCurrentMonth)
+                      .reduce((total, day) => total + (day?.studyTime || 0), 0);
+
+                    return (
+                      <div key={monthIndex} className="flex flex-col items-center min-w-[80px]">
+                        {/* Month label */}
+                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
+                          {monthData.monthName}
+                        </div>
+                        
+                        {/* Days grid for this month */}
+                        <div className="flex space-x-1 mb-3">
+                          {monthData.grid[0] && monthData.grid[0].map((_, weekIndex) => (
+                            <div key={weekIndex} className="flex flex-col space-y-1">
+                              {monthData.grid.map((week, dayIndex) => {
+                                const day = week[weekIndex];
+                                return (
+                                  <div
+                                    key={dayIndex}
+                                    className={`w-4 h-4 rounded-sm cursor-pointer transition-all hover:scale-110 ${
+                                      day && day.isCurrentMonth ? day.colorClass : 'bg-gray-100 dark:bg-gray-800'
+                                    }`}
+                                    onMouseEnter={(e) => {
+                                      if (day && day.isCurrentMonth) {
+                                        const rect = e.currentTarget.getBoundingClientRect();
+                                        setHoveredDay({
+                                          date: day.date,
+                                          studyTime: day.studyTime,
+                                          x: rect.left + rect.width / 2,
+                                          y: rect.top
+                                        });
+                                      }
+                                    }}
+                                    onMouseLeave={() => setHoveredDay(null)}
+                                  />
+                                );
+                              })}
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Monthly total */}
+                        <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                          {monthTotal > 0 ? formatTime(monthTotal) : '0h'}
+                        </div>
                       </div>
-                      
-                      {/* Days grid for this month */}
-                      <div className="flex space-x-1">
-                        {monthData.grid[0] && monthData.grid[0].map((_, weekIndex) => (
-                          <div key={weekIndex} className="flex flex-col space-y-1">
-                            {monthData.grid.map((week, dayIndex) => {
-                              const day = week[weekIndex];
-                              return (
-                                <div
-                                  key={dayIndex}
-                                  className={`w-3 h-3 rounded-sm cursor-pointer ${
-                                    day && day.isCurrentMonth ? day.colorClass : 'bg-transparent'
-                                  }`}
-                                  onMouseEnter={(e) => {
-                                    if (day && day.isCurrentMonth) {
-                                      const rect = e.currentTarget.getBoundingClientRect();
-                                      setHoveredDay({
-                                        date: day.date,
-                                        studyTime: day.studyTime,
-                                        x: rect.left + rect.width / 2,
-                                        y: rect.top
-                                      });
-                                    }
-                                  }}
-                                  onMouseLeave={() => setHoveredDay(null)}
-                                />
-                              );
-                            })}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
               
               {/* Custom Tooltip */}
               {hoveredDay && (
                 <div 
-                  className="fixed z-50 bg-gray-900 text-white text-xs rounded-lg px-3 py-2 shadow-lg pointer-events-none"
+                  className="fixed z-50 bg-gray-900 dark:bg-gray-800 text-white text-sm rounded-lg px-3 py-2 shadow-xl pointer-events-none border border-gray-700"
                   style={{
-                    left: hoveredDay.x - 50,
-                    top: hoveredDay.y - 60,
+                    left: hoveredDay.x - 75,
+                    top: hoveredDay.y - 70,
                     transform: 'translateX(-50%)'
                   }}
                 >
@@ -409,20 +490,28 @@ const AnalyzePage = () => {
                       year: 'numeric'
                     })}
                   </div>
-                  <div className="text-gray-300">
+                  <div className="text-gray-300 text-xs">
                     {hoveredDay.studyTime > 0 ? formatTime(hoveredDay.studyTime) : 'No study time'}
                   </div>
+                  {/* Tooltip arrow */}
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-gray-800"></div>
                 </div>
               )}
-            </div>
-            
-            <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
-              <span>
-                {dailyData.size > 0 
-                  ? `${Array.from(dailyData.values()).filter(time => time > 0).length} days with study activity in the past year`
-                  : 'No study activity recorded in the past year'
-                }
-              </span>
+
+              {/* Summary */}
+              <div className="mt-6 text-center">
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  {dailyData.size > 0 
+                    ? `${Array.from(dailyData.values()).filter(time => time > 0).length} days with study activity in ${new Date().getFullYear()}`
+                    : `No focus sessions for ${new Date().getFullYear()}`
+                  }
+                </div>
+                {dailyData.size === 0 && (
+                  <div className="text-sm text-gray-500 dark:text-gray-500 mt-1">
+                    Start focusing to see your activity breakdown
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
