@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Play, Pause, Volume2, Settings, FileText, CheckSquare, Timer, X, Plus, Minus } from 'lucide-react';
+import { Play, Pause, Volume2, Settings, FileText, Timer, X, Plus, Minus } from 'lucide-react';
 import { useTodos } from './context/TodoContext';
 
 type TimerMode = 'pomodoro' | '52-17' | 'flowtime' | '90-20' | '2-minute' | 'reverse-pomodoro' | 'stopwatch';
@@ -64,13 +64,12 @@ const FocusPage = () => {
   const [timeLeft, setTimeLeft] = useState(timerConfigs['pomodoro'].workTime);
   const [elapsedTime, setElapsedTime] = useState(0); // For stopwatch and flowtime
   const [selectedTodoId, setSelectedTodoId] = useState('');
-  const [showModeSelector, setShowModeSelector] = useState(false);
   const [showConfigureMenu, setShowConfigureMenu] = useState(false);
   const [showLogMenu, setShowLogMenu] = useState(false);
-  const [showTodoMenu, setShowTodoMenu] = useState(false);
   const [sessionNote, setSessionNote] = useState('');
   const [iterations, setIterations] = useState(1);
   const [currentIteration, setCurrentIteration] = useState(1);
+  const [startWithBreak, setStartWithBreak] = useState(false); // For reverse pomodoro and custom configurations
   
   // Configurable durations for each mode (in minutes)
   const [modeDurations, setModeDurations] = useState<Record<TimerMode, { work: number; break: number }>>({
@@ -142,8 +141,8 @@ const FocusPage = () => {
     sessionStartTime.current = new Date();
     sessionTimeElapsed.current = 0;
     
-    // Handle reverse pomodoro - start with break
-    if (timerMode === 'reverse-pomodoro' && !isBreakTime && timeLeft === getCurrentConfig().workTime) {
+    // Handle starting with break if configured
+    if ((timerMode === 'reverse-pomodoro' || startWithBreak) && !isBreakTime && timeLeft === getCurrentConfig().workTime) {
       setIsBreakTime(true);
       setTimeLeft(getCurrentConfig().breakTime);
     }
@@ -205,11 +204,10 @@ const FocusPage = () => {
     setElapsedTime(0);
     sessionTimeElapsed.current = 0;
     sessionStartTime.current = null;
+    setCurrentIteration(1);
     
     const config = getCurrentConfig();
-    if (timerMode === 'reverse-pomodoro') {
-      setTimeLeft(config.workTime);
-    } else if (timerMode === 'stopwatch' || timerMode === 'flowtime') {
+    if (timerMode === 'stopwatch' || timerMode === 'flowtime') {
       setTimeLeft(0);
     } else {
       setTimeLeft(config.workTime);
@@ -224,10 +222,11 @@ const FocusPage = () => {
     sessionTimeElapsed.current = 0;
     setCurrentIteration(1);
     
+    // Set startWithBreak for reverse pomodoro
+    setStartWithBreak(mode === 'reverse-pomodoro');
+    
     const durations = modeDurations[mode];
     setTimeLeft(durations.work * 60);
-    
-    setShowModeSelector(false);
   };
 
   const updateModeDuration = (mode: TimerMode, type: 'work' | 'break', value: number) => {
@@ -288,47 +287,6 @@ const FocusPage = () => {
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-8 bg-white dark:bg-gray-900 relative">
-      {/* Mode Selector Button */}
-      <div className="absolute top-8 right-8">
-        <button
-          onClick={() => setShowModeSelector(!showModeSelector)}
-          className="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg flex items-center space-x-2"
-        >
-          <Timer className="w-4 h-4" />
-          <span className="text-sm font-medium">{getCurrentConfig().name}</span>
-        </button>
-      </div>
-
-      {/* Mode Selector Modal */}
-      {showModeSelector && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Choose Timer Mode</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {Object.entries(timerConfigs).map(([key, config]) => (
-                <button
-                  key={key}
-                  onClick={() => handleModeChange(key as TimerMode)}
-                  className={`p-4 rounded-lg border text-left transition-colors ${
-                    timerMode === key
-                      ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
-                      : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">{config.name}</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{config.description}</p>
-                </button>
-              ))}
-            </div>
-            <button
-              onClick={() => setShowModeSelector(false)}
-              className="mt-4 w-full py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Configure Menu Modal */}
       {showConfigureMenu && (
@@ -344,48 +302,64 @@ const FocusPage = () => {
               </button>
             </div>
             
+            {/* Mode Description */}
+            <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3 mb-4">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                {timerMode === 'pomodoro' && 'Classic Pomodoro technique for focused work sessions with regular breaks.'}
+                {timerMode === '52-17' && 'Extended focus sessions of 52 minutes with 17-minute breaks for deeper concentration.'}
+                {timerMode === 'flowtime' && 'Work until you naturally lose focus, then take a break. Perfect for finding your rhythm.'}
+                {timerMode === '90-20' && 'Based on ultradian rhythms - 90 minutes of deep focus followed by 20-minute rest.'}
+                {timerMode === '2-minute' && 'Start with just 2 minutes to overcome procrastination. Momentum often keeps you going.'}
+                {timerMode === 'reverse-pomodoro' && 'Start with a break to ease into work. Helpful when you\'re resisting starting.'}
+                {timerMode === 'stopwatch' && 'Simple timer that counts up. Track your work without predetermined durations.'}
+              </p>
+            </div>
+            
             <div className="space-y-6">
-              {/* Focus Duration */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                  Focus Duration
-                </label>
-                <div className="flex items-center space-x-3">
-                  <button
-                    onClick={() => updateModeDuration(timerMode, 'work', modeDurations[timerMode].work - 1)}
-                    className="w-8 h-8 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg flex items-center justify-center"
-                    disabled={modeDurations[timerMode].work <= 1}
-                  >
-                    <Minus className="w-4 h-4" />
-                  </button>
-                  <div className="flex-1">
-                    <input
-                      type="range"
-                      min="1"
-                      max="120"
-                      value={modeDurations[timerMode].work}
-                      onChange={(e) => updateModeDuration(timerMode, 'work', parseInt(e.target.value))}
-                      className="w-full"
-                    />
-                    <div className="text-center mt-1 text-2xl font-semibold text-gray-900 dark:text-gray-100">
-                      {modeDurations[timerMode].work} min
+              {/* Focus Duration - Hide for stopwatch and flowtime */}
+              {timerMode !== 'stopwatch' && timerMode !== 'flowtime' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                    Focus Duration
+                  </label>
+                  <div className="flex items-center space-x-3">
+                    <button
+                      onClick={() => updateModeDuration(timerMode, 'work', modeDurations[timerMode].work - 1)}
+                      className="w-8 h-8 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg flex items-center justify-center"
+                      disabled={modeDurations[timerMode].work <= 1}
+                    >
+                      <Minus className="w-4 h-4" />
+                    </button>
+                    <div className="flex-1">
+                      <input
+                        type="range"
+                        min="1"
+                        max="120"
+                        value={modeDurations[timerMode].work}
+                        onChange={(e) => updateModeDuration(timerMode, 'work', parseInt(e.target.value))}
+                        className="w-full"
+                      />
+                      <div className="text-center mt-1 text-2xl font-semibold text-gray-900 dark:text-gray-100">
+                        {modeDurations[timerMode].work} min
+                      </div>
                     </div>
+                    <button
+                      onClick={() => updateModeDuration(timerMode, 'work', modeDurations[timerMode].work + 1)}
+                      className="w-8 h-8 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg flex items-center justify-center"
+                      disabled={modeDurations[timerMode].work >= 120}
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
                   </div>
-                  <button
-                    onClick={() => updateModeDuration(timerMode, 'work', modeDurations[timerMode].work + 1)}
-                    className="w-8 h-8 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg flex items-center justify-center"
-                    disabled={modeDurations[timerMode].work >= 120}
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
                 </div>
-              </div>
+              )}
 
-              {/* Break Duration */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                  Break Duration
-                </label>
+              {/* Break Duration - Hide for stopwatch */}
+              {timerMode !== 'stopwatch' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                    {timerMode === 'flowtime' ? 'Break Duration (after ending flow)' : 'Break Duration'}
+                  </label>
                 <div className="flex items-center space-x-3">
                   <button
                     onClick={() => updateModeDuration(timerMode, 'break', modeDurations[timerMode].break - 1)}
@@ -415,10 +389,11 @@ const FocusPage = () => {
                     <Plus className="w-4 h-4" />
                   </button>
                 </div>
-              </div>
+              )}
 
-              {/* Iterations */}
-              <div>
+              {/* Iterations - Hide for stopwatch and flowtime */}
+              {timerMode !== 'stopwatch' && timerMode !== 'flowtime' && (
+                <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                   Iterations
                 </label>
@@ -444,24 +419,66 @@ const FocusPage = () => {
                   </button>
                 </div>
               </div>
+              )}
 
-              {/* Session Preview */}
-              <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
+              {/* Start with Break Toggle - Hide for stopwatch */}
+              {timerMode !== 'stopwatch' && (
+                <div>
+                <label className="flex items-center space-x-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={startWithBreak}
+                    onChange={(e) => setStartWithBreak(e.target.checked)}
+                    className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 dark:focus:ring-green-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                  />
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Start with break period
+                  </span>
+                </label>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 ml-7">
+                  {timerMode === 'reverse-pomodoro' 
+                    ? 'Reverse Pomodoro starts with a break to help overcome resistance'
+                    : timerMode === '2-minute'
+                    ? 'Starting with a break can help ease into difficult tasks'
+                    : 'Begin your session with a break before focusing'}
+                </p>
+              </div>
+              )}
+
+              {/* Session Preview - Hide for stopwatch */}
+              {timerMode !== 'stopwatch' && (
+                <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
                 <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Session Preview</div>
-                <div className="flex items-center space-x-1">
-                  {Array.from({ length: iterations }).map((_, i) => (
-                    <div key={i} className="flex items-center">
-                      <div className="bg-green-500 h-2 rounded" style={{ width: `${modeDurations[timerMode].work * 2}px` }} />
-                      {modeDurations[timerMode].break > 0 && i < iterations - 1 && (
-                        <div className="bg-blue-500 h-2 rounded ml-1" style={{ width: `${modeDurations[timerMode].break * 2}px` }} />
-                      )}
-                    </div>
-                  ))}
+                <div className="flex items-center space-x-1 overflow-x-auto">
+                  {Array.from({ length: iterations }).map((_, i) => {
+                    const showBreakFirst = startWithBreak && i === 0;
+                    const showBreakAfter = !startWithBreak && modeDurations[timerMode].break > 0 && i < iterations - 1;
+                    const showBreakBetween = startWithBreak && modeDurations[timerMode].break > 0 && i > 0 && i < iterations;
+                    
+                    return (
+                      <div key={i} className="flex items-center">
+                        {showBreakFirst && (
+                          <div className="bg-blue-500 h-2 rounded" style={{ width: `${Math.min(modeDurations[timerMode].break * 2, 60)}px` }} />
+                        )}
+                        {showBreakBetween && (
+                          <div className="bg-blue-500 h-2 rounded ml-1" style={{ width: `${Math.min(modeDurations[timerMode].break * 2, 60)}px` }} />
+                        )}
+                        <div className={`bg-green-500 h-2 rounded ${(showBreakFirst || showBreakBetween) ? 'ml-1' : ''}`} 
+                             style={{ width: `${Math.min(modeDurations[timerMode].work * 2, 120)}px` }} />
+                        {showBreakAfter && (
+                          <div className="bg-blue-500 h-2 rounded ml-1" style={{ width: `${Math.min(modeDurations[timerMode].break * 2, 60)}px` }} />
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
                 <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                  Total: {modeDurations[timerMode].work * iterations + modeDurations[timerMode].break * (iterations - 1)} minutes
+                  {timerMode === 'flowtime' 
+                    ? 'Flow until you naturally lose focus, then take a break'
+                    : `Total: ${modeDurations[timerMode].work * iterations + modeDurations[timerMode].break * Math.max(iterations - (startWithBreak ? 0 : 1), startWithBreak ? iterations : 0)} minutes`}
                 </div>
               </div>
+              )}
             </div>
 
             <button
@@ -537,74 +554,6 @@ const FocusPage = () => {
                 Cancel
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Todo Menu Modal */}
-      {showTodoMenu && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4 max-h-[80vh] overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Active Tasks</h2>
-              <button
-                onClick={() => setShowTodoMenu(false)}
-                className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            
-            <div className="flex-1 overflow-y-auto">
-              {activeTodos.length === 0 ? (
-                <div className="text-center py-8">
-                  <CheckSquare className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-                  <p className="text-gray-500 dark:text-gray-400">No active tasks</p>
-                  <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">Add tasks from the Plan page</p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {activeTodos.map(todo => (
-                    <button
-                      key={todo.id}
-                      onClick={() => {
-                        setSelectedTodoId(todo.id);
-                        setShowTodoMenu(false);
-                      }}
-                      className={`w-full text-left p-3 rounded-lg border transition-colors ${
-                        selectedTodoId === todo.id
-                          ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
-                          : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-900 dark:text-gray-100">{todo.text}</span>
-                        {todo.totalTime > 0 && (
-                          <span className="text-sm text-gray-500 dark:text-gray-400">
-                            {formatTime(todo.totalTime)}
-                          </span>
-                        )}
-                      </div>
-                      {todo.tagId && (() => {
-                        const tag = todos.find(t => t.id === todo.tagId);
-                        return tag ? (
-                          <div className="mt-2 inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400">
-                            {tag.text}
-                          </div>
-                        ) : null;
-                      })()}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <button
-              onClick={() => setShowTodoMenu(false)}
-              className="mt-4 w-full py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg"
-            >
-              Close
-            </button>
           </div>
         </div>
       )}
@@ -690,7 +639,7 @@ const FocusPage = () => {
           <span>
             {timerMode === 'stopwatch' ? 'Start Stopwatch' : 
              timerMode === 'flowtime' ? 'Start Flow Session' :
-             isBreakTime ? 'Start Break' : 'Start Focus Session'}
+             startWithBreak ? 'Start with Break' : 'Start Focus Session'}
           </span>
         </button>
       )}
@@ -725,7 +674,7 @@ const FocusPage = () => {
           )}
 
           {/* End Flow Session button for Flowtime mode */}
-          {timerMode === 'flowtime' && isRunning && (
+          {timerMode === 'flowtime' && isRunning && !isBreakTime && (
             <button
               onClick={() => {
                 setIsRunning(false);
@@ -734,6 +683,7 @@ const FocusPage = () => {
                 if (getCurrentConfig().breakTime > 0) {
                   setIsBreakTime(true);
                   setTimeLeft(getCurrentConfig().breakTime);
+                  setIsRunning(true);
                 }
               }}
               className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm"
@@ -744,29 +694,43 @@ const FocusPage = () => {
         </div>
       )}
 
-      {/* Action Buttons */}
-      <div className="flex items-center space-x-3">
-        <button 
-          onClick={() => setShowConfigureMenu(true)}
-          className="px-5 py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg flex items-center space-x-2"
-        >
-          <Settings className="w-4 h-4" />
-          <span className="text-sm font-medium">Configure</span>
-        </button>
-        <button 
-          onClick={() => setShowLogMenu(true)}
-          className="px-5 py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg flex items-center space-x-2"
-        >
-          <FileText className="w-4 h-4" />
-          <span className="text-sm font-medium">Log</span>
-        </button>
-        <button 
-          onClick={() => setShowTodoMenu(true)}
-          className="px-5 py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg flex items-center space-x-2"
-        >
-          <CheckSquare className="w-4 h-4" />
-          <span className="text-sm font-medium">Todo</span>
-        </button>
+      {/* Action Buttons and Timer Mode Selector */}
+      <div className="flex flex-col items-center space-y-4">
+        {/* Timer Mode Selector Dropdown */}
+        <div className="relative">
+          <select
+            value={timerMode}
+            onChange={(e) => handleModeChange(e.target.value as TimerMode)}
+            className="px-4 py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg appearance-none pr-10 text-sm font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-green-500"
+          >
+            <option value="pomodoro">Pomodoro (25/5)</option>
+            <option value="52-17">52/17 Rule</option>
+            <option value="flowtime">Flowtime</option>
+            <option value="90-20">90/20 Rule</option>
+            <option value="2-minute">2-Minute Rule</option>
+            <option value="reverse-pomodoro">Reverse Pomodoro</option>
+            <option value="stopwatch">Stopwatch</option>
+          </select>
+          <Timer className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
+        </div>
+        
+        {/* Configure and Log Buttons */}
+        <div className="flex items-center space-x-3">
+          <button 
+            onClick={() => setShowConfigureMenu(true)}
+            className="px-5 py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg flex items-center space-x-2"
+          >
+            <Settings className="w-4 h-4" />
+            <span className="text-sm font-medium">Configure</span>
+          </button>
+          <button 
+            onClick={() => setShowLogMenu(true)}
+            className="px-5 py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg flex items-center space-x-2"
+          >
+            <FileText className="w-4 h-4" />
+            <span className="text-sm font-medium">Log</span>
+          </button>
+        </div>
       </div>
     </div>
   );
