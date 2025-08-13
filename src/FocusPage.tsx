@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Play, Pause, Volume2, Settings, FileText, Timer, X, Plus, Minus } from 'lucide-react';
+import { Play, Pause, Volume2, Settings, FileText, Timer, X, Plus, Minus, Zap, Target, TrendingUp, Coffee, Wind, Trees, Waves, Cloud, Headphones, VolumeX, Bell, BellOff, Keyboard, Flame } from 'lucide-react';
 import { useTodos } from './context/TodoContext';
 
 type TimerMode = 'pomodoro' | '52-17' | 'flowtime' | '90-20' | '2-minute' | 'reverse-pomodoro' | 'stopwatch';
@@ -71,6 +71,20 @@ const FocusPage = () => {
   const [currentIteration, setCurrentIteration] = useState(1);
   const [startWithBreak, setStartWithBreak] = useState(false); // For reverse pomodoro and custom configurations
   
+  // New feature states
+  const [showSoundMenu, setShowSoundMenu] = useState(false);
+  const [currentSound, setCurrentSound] = useState<string>('none');
+  const [soundVolume, setSoundVolume] = useState(50);
+  const [isSoundMuted, setIsSoundMuted] = useState(false);
+  const [showStatsPanel, setShowStatsPanel] = useState(false);
+  const [dailyGoal, setDailyGoal] = useState(120); // minutes
+  const [dailyProgress, setDailyProgress] = useState(0); // minutes
+  const [currentStreak, setCurrentStreak] = useState(0);
+  const [showBreathingGuide, setShowBreathingGuide] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
+  const [focusQuote, setFocusQuote] = useState({ text: "Deep work requires deep commitment.", author: "Cal Newport" });
+  
   // Configurable durations for each mode (in minutes)
   const [modeDurations, setModeDurations] = useState<Record<TimerMode, { work: number; break: number }>>({
     'pomodoro': { work: 25, break: 5 },
@@ -87,6 +101,27 @@ const FocusPage = () => {
   
   const { todos, addSessionToTodo } = useTodos();
   const activeTodos = todos.filter(todo => !todo.completed);
+  
+  // Focus sounds library
+  const focusSounds = [
+    { id: 'none', name: 'No Sound', icon: VolumeX },
+    { id: 'rain', name: 'Rain', icon: Cloud },
+    { id: 'forest', name: 'Forest', icon: Trees },
+    { id: 'waves', name: 'Ocean Waves', icon: Waves },
+    { id: 'whitenoise', name: 'White Noise', icon: Wind },
+    { id: 'cafe', name: 'Café Ambience', icon: Coffee },
+    { id: 'lofi', name: 'Lo-Fi Beats', icon: Headphones },
+  ];
+  
+  // Motivational quotes
+  const quotes = [
+    { text: "Deep work requires deep commitment.", author: "Cal Newport" },
+    { text: "Focus is a matter of deciding what things you're not going to do.", author: "John Carmack" },
+    { text: "The successful warrior is the average person with laser-like focus.", author: "Bruce Lee" },
+    { text: "Where focus goes, energy flows.", author: "Tony Robbins" },
+    { text: "Starve your distractions, feed your focus.", author: "Unknown" },
+    { text: "The key to success is to focus on goals, not obstacles.", author: "Unknown" },
+  ];
 
   // Get current timer configuration
   const getCurrentConfig = () => {
@@ -108,12 +143,20 @@ const FocusPage = () => {
         interval = setInterval(() => {
           setElapsedTime(prev => prev + 1);
           sessionTimeElapsed.current += 1;
+          // Update daily progress
+          if (!isBreakTime && sessionTimeElapsed.current % 60 === 0) {
+            setDailyProgress(prev => prev + 1);
+          }
         }, 1000) as unknown as number;
       } else if (timeLeft > 0) {
         // Count down for other modes
         interval = setInterval(() => {
           setTimeLeft(timeLeft => timeLeft - 1);
           sessionTimeElapsed.current += 1;
+          // Update daily progress
+          if (!isBreakTime && sessionTimeElapsed.current % 60 === 0) {
+            setDailyProgress(prev => prev + 1);
+          }
         }, 1000) as unknown as number;
       } else if (timeLeft === 0) {
         // Timer completed
@@ -124,7 +167,49 @@ const FocusPage = () => {
     return () => {
       if (interval !== null) clearInterval(interval);
     };
-  }, [isRunning, timeLeft, timerMode]);
+  }, [isRunning, timeLeft, timerMode, isBreakTime]);
+  
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      // Don't trigger if user is typing in an input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      
+      switch(e.key.toLowerCase()) {
+        case ' ':
+          e.preventDefault();
+          if (isRunning) pauseTimer(); else startTimer();
+          break;
+        case 'r':
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            resetTimer();
+          }
+          break;
+        case 's':
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            setShowStatsPanel(!showStatsPanel);
+          }
+          break;
+        case '?':
+          setShowKeyboardShortcuts(!showKeyboardShortcuts);
+          break;
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [isRunning, showStatsPanel, showKeyboardShortcuts]);
+  
+  // Rotate quotes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setFocusQuote(quotes[Math.floor(Math.random() * quotes.length)]);
+    }, 30000); // Change every 30 seconds
+    
+    return () => clearInterval(interval);
+  }, []);
 
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -160,6 +245,16 @@ const FocusPage = () => {
   const handleTimerComplete = () => {
     setIsRunning(false);
     
+    // Play notification sound
+    if (notificationsEnabled) {
+      playNotificationSound();
+    }
+    
+    // Update streak
+    if (!isBreakTime) {
+      setCurrentStreak(prev => prev + 1);
+    }
+    
     const config = getCurrentConfig();
     
     // Toggle between work and break
@@ -183,6 +278,10 @@ const FocusPage = () => {
       if (config.breakTime > 0) {
         setIsBreakTime(true);
         setTimeLeft(config.breakTime);
+        // Show breathing guide during breaks
+        if (config.breakTime >= 60) {
+          setShowBreathingGuide(true);
+        }
         // Auto-start break
         setIsRunning(true);
       } else if (currentIteration < iterations) {
@@ -196,6 +295,12 @@ const FocusPage = () => {
         setCurrentIteration(1);
       }
     }
+  };
+  
+  const playNotificationSound = () => {
+    const audio = new Audio('/notification.mp3');
+    audio.volume = 0.5;
+    audio.play().catch(() => {});
   };
 
   const resetTimer = () => {
@@ -286,7 +391,60 @@ const FocusPage = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 bg-white dark:bg-gray-900 relative">
+    <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 bg-white dark:bg-gray-900 relative overflow-hidden">
+      {/* Background gradient animation */}
+      <div className="absolute inset-0 bg-gradient-to-br from-green-50 via-transparent to-blue-50 dark:from-green-950/20 dark:to-blue-950/20 opacity-50" />
+      
+      {/* Floating Stats Panel */}
+      {showStatsPanel && (
+        <div className="absolute top-4 right-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 w-64 z-10">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100">Today's Progress</h3>
+            <button onClick={() => setShowStatsPanel(false)}>
+              <X className="w-4 h-4 text-gray-400" />
+            </button>
+          </div>
+          
+          <div className="space-y-3">
+            <div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-600 dark:text-gray-400">Daily Goal</span>
+                <span className="font-medium">{dailyProgress}/{dailyGoal} min</span>
+              </div>
+              <div className="mt-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-green-500 to-green-600 transition-all"
+                  style={{ width: `${Math.min((dailyProgress / dailyGoal) * 100, 100)}%` }}
+                />
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Flame className="w-4 h-4 text-orange-500" />
+                <span className="text-sm text-gray-600 dark:text-gray-400">Streak</span>
+              </div>
+              <span className="font-bold text-orange-500">{currentStreak} 🔥</span>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Zap className="w-4 h-4 text-yellow-500" />
+                <span className="text-sm text-gray-600 dark:text-gray-400">Focus Score</span>
+              </div>
+              <span className="font-bold text-yellow-500">{Math.round((dailyProgress / dailyGoal) * 100)}%</span>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Motivational Quote */}
+      <div className="absolute top-4 left-4 max-w-sm">
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur rounded-lg p-3 shadow-sm">
+          <p className="text-sm text-gray-600 dark:text-gray-400 italic">"{focusQuote.text}"</p>
+          <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">— {focusQuote.author}</p>
+        </div>
+      </div>
 
       {/* Configure Menu Modal */}
       {showConfigureMenu && (
@@ -558,6 +716,129 @@ const FocusPage = () => {
           </div>
         </div>
       )}
+      
+      {/* Sound Menu Modal */}
+      {showSoundMenu && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Ambient Sounds</h2>
+              <button onClick={() => setShowSoundMenu(false)}>
+                <X className="w-5 h-5 text-gray-400" />
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              {focusSounds.map(sound => {
+                const Icon = sound.icon;
+                return (
+                  <button
+                    key={sound.id}
+                    onClick={() => setCurrentSound(sound.id)}
+                    className={`p-4 rounded-lg border-2 transition-all ${
+                      currentSound === sound.id
+                        ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
+                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    <Icon className="w-6 h-6 mx-auto mb-2 text-gray-600 dark:text-gray-400" />
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{sound.name}</p>
+                  </button>
+                );
+              })}
+            </div>
+            
+            <div className="space-y-3">
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Volume</label>
+                <div className="flex items-center space-x-3 mt-2">
+                  <VolumeX className="w-4 h-4 text-gray-400" />
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={soundVolume}
+                    onChange={(e) => setSoundVolume(parseInt(e.target.value))}
+                    className="flex-1"
+                  />
+                  <Volume2 className="w-4 h-4 text-gray-400" />
+                </div>
+              </div>
+              
+              <button
+                onClick={() => setIsSoundMuted(!isSoundMuted)}
+                className={`w-full py-2 rounded-lg font-medium transition-colors ${
+                  isSoundMuted
+                    ? 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                    : 'bg-green-500 hover:bg-green-600 text-white'
+                }`}
+              >
+                {isSoundMuted ? 'Unmute' : 'Mute'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Breathing Guide Modal */}
+      {showBreathingGuide && isBreakTime && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="text-center">
+            <button
+              onClick={() => setShowBreathingGuide(false)}
+              className="absolute top-4 right-4 text-white/60 hover:text-white"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            
+            <div className="relative w-48 h-48 mx-auto mb-8">
+              <div className="absolute inset-0 bg-blue-500 rounded-full animate-pulse opacity-20" />
+              <div className="absolute inset-4 bg-blue-400 rounded-full animate-pulse animation-delay-200 opacity-30" />
+              <div className="absolute inset-8 bg-blue-300 rounded-full animate-pulse animation-delay-400 opacity-40" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Wind className="w-16 h-16 text-white" />
+              </div>
+            </div>
+            
+            <h3 className="text-2xl font-light text-white mb-2">Take a Deep Breath</h3>
+            <p className="text-white/80">Inhale... Hold... Exhale...</p>
+            <p className="text-sm text-white/60 mt-4">Relaxation helps maintain focus</p>
+          </div>
+        </div>
+      )}
+      
+      {/* Keyboard Shortcuts Modal */}
+      {showKeyboardShortcuts && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Keyboard Shortcuts</h2>
+              <button onClick={() => setShowKeyboardShortcuts(false)}>
+                <X className="w-5 h-5 text-gray-400" />
+              </button>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600 dark:text-gray-400">Start/Pause Timer</span>
+                <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-sm font-mono">Space</kbd>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600 dark:text-gray-400">Reset Timer</span>
+                <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-sm font-mono">Ctrl+R</kbd>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600 dark:text-gray-400">Toggle Stats</span>
+                <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-sm font-mono">Ctrl+S</kbd>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600 dark:text-gray-400">Show Shortcuts</span>
+                <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-sm font-mono">?</kbd>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Task Selector */}
       <div className="w-full max-w-xs mb-6 sm:mb-8">
@@ -661,8 +942,15 @@ const FocusPage = () => {
             )}
           </button>
           
-          <button className="p-2 sm:p-3 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
-            <Volume2 className="w-4 h-4 sm:w-5 sm:h-5" />
+          <button 
+            onClick={() => setShowSoundMenu(true)}
+            className="p-2 sm:p-3 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+          >
+            {currentSound !== 'none' ? (
+              <Headphones className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
+            ) : (
+              <Volume2 className="w-4 h-4 sm:w-5 sm:h-5" />
+            )}
           </button>
 
           {!isRunning && (
@@ -732,6 +1020,62 @@ const FocusPage = () => {
             <span className="text-xs sm:text-sm font-medium">Log</span>
           </button>
         </div>
+      </div>
+      
+      {/* Quick Action Buttons */}
+      <div className="fixed bottom-4 right-4 flex flex-col space-y-2">
+        <button
+          onClick={() => setShowSoundMenu(true)}
+          className={`p-3 rounded-full shadow-lg transition-all ${
+            currentSound !== 'none' 
+              ? 'bg-green-500 hover:bg-green-600 text-white' 
+              : 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400'
+          }`}
+          title="Ambient Sounds"
+        >
+          <Headphones className="w-5 h-5" />
+        </button>
+        
+        <button
+          onClick={() => setShowStatsPanel(!showStatsPanel)}
+          className="p-3 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-full shadow-lg text-gray-600 dark:text-gray-400"
+          title="Focus Stats"
+        >
+          <TrendingUp className="w-5 h-5" />
+        </button>
+        
+        <button
+          onClick={() => {
+            const newGoal = prompt('Set daily goal (minutes):', dailyGoal.toString());
+            if (newGoal && !isNaN(parseInt(newGoal))) {
+              setDailyGoal(parseInt(newGoal));
+            }
+          }}
+          className="p-3 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-full shadow-lg text-gray-600 dark:text-gray-400"
+          title="Daily Goal"
+        >
+          <Target className="w-5 h-5" />
+        </button>
+        
+        <button
+          onClick={() => setNotificationsEnabled(!notificationsEnabled)}
+          className={`p-3 rounded-full shadow-lg transition-all ${
+            notificationsEnabled 
+              ? 'bg-blue-500 hover:bg-blue-600 text-white' 
+              : 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400'
+          }`}
+          title="Notifications"
+        >
+          {notificationsEnabled ? <Bell className="w-5 h-5" /> : <BellOff className="w-5 h-5" />}
+        </button>
+        
+        <button
+          onClick={() => setShowKeyboardShortcuts(true)}
+          className="p-3 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-full shadow-lg text-gray-600 dark:text-gray-400"
+          title="Keyboard Shortcuts"
+        >
+          <Keyboard className="w-5 h-5" />
+        </button>
       </div>
     </div>
   );
