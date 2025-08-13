@@ -19,7 +19,7 @@ interface TimeDistribution {
 
 const AnalyzePage = () => {
   const { todos, tags } = useTodos();
-  const [timeRange, setTimeRange] = useState<'week' | 'month' | 'year' | 'all'>('month');
+  const [timeRange, setTimeRange] = useState<'day' | 'week' | 'month' | 'year'>('week');
   const [tagStats, setTagStats] = useState<TagStats[]>([]);
   const [timeDistribution, setTimeDistribution] = useState<TimeDistribution[]>([]);
   const [productiveDays, setProductiveDays] = useState<string[]>([]);
@@ -36,14 +36,14 @@ const AnalyzePage = () => {
     const now = new Date();
     const startDate = new Date();
     
-    if (timeRange === 'week') {
+    if (timeRange === 'day') {
+      startDate.setDate(now.getDate() - 1);
+    } else if (timeRange === 'week') {
       startDate.setDate(now.getDate() - 7);
     } else if (timeRange === 'month') {
       startDate.setDate(now.getDate() - 30);
     } else if (timeRange === 'year') {
       startDate.setFullYear(now.getFullYear() - 1);
-    } else {
-      startDate.setFullYear(2020); // All time
     }
 
     // Calculate tag statistics
@@ -264,80 +264,101 @@ const AnalyzePage = () => {
     <div className="flex-1 flex bg-white dark:bg-gray-900">
       {/* Sidebar */}
       <div className="w-64 bg-gray-50 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
-        <div className="p-6">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Analytics</h1>
-          <p className="text-gray-600 dark:text-gray-400 text-sm mb-6">Deep insights into your productivity patterns</p>
-          
-          {/* Analyze Dropdown */}
-          <div className="relative">
-            <button
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="w-full flex items-center justify-between px-4 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg text-left"
-            >
-              <div className="flex items-center space-x-3">
-                <BarChart3 className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                <span className="font-medium text-gray-900 dark:text-gray-100">Analyze</span>
-              </div>
-              <ChevronDown className={`w-4 h-4 text-gray-600 dark:text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+        <div className="p-4">
+          {/* Navigation Items */}
+          <div className="space-y-1">
+            {/* Plan */}
+            <button className="w-full flex items-center space-x-3 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              </svg>
+              <span className="font-medium">Plan</span>
             </button>
-            
-            {/* Dropdown Menu */}
-            {isDropdownOpen && (
-              <div className="mt-2 space-y-1">
-                <button
-                  onClick={() => {
-                    setTimeRange('week');
-                    setIsDropdownOpen(false);
-                  }}
-                  className={`w-full text-left px-4 py-2 rounded-lg text-sm transition-colors ${
-                    timeRange === 'week'
-                      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  Week
-                </button>
-                <button
-                  onClick={() => {
-                    setTimeRange('month');
-                    setIsDropdownOpen(false);
-                  }}
-                  className={`w-full text-left px-4 py-2 rounded-lg text-sm transition-colors ${
-                    timeRange === 'month'
-                      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  Month
-                </button>
-                <button
-                  onClick={() => {
-                    setTimeRange('year');
-                    setIsDropdownOpen(false);
-                  }}
-                  className={`w-full text-left px-4 py-2 rounded-lg text-sm transition-colors ${
-                    timeRange === 'year'
-                      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  Year
-                </button>
-                <button
-                  onClick={() => {
-                    setTimeRange('all');
-                    setIsDropdownOpen(false);
-                  }}
-                  className={`w-full text-left px-4 py-2 rounded-lg text-sm transition-colors ${
-                    timeRange === 'all'
-                      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  All time
-                </button>
+
+            {/* Focus */}
+            <button className="w-full flex items-center space-x-3 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
+              <Clock className="w-5 h-5" />
+              <span className="font-medium">Focus</span>
+            </button>
+
+            {/* Review */}
+            <button className="w-full flex items-center justify-between px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <Calendar className="w-5 h-5" />
+                <span className="font-medium">Review</span>
               </div>
-            )}
+              <ChevronDown className="w-4 h-4 rotate-[-90deg]" />
+            </button>
+
+            {/* Analyze Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-lg ${
+                  isDropdownOpen ? 'bg-gray-200 dark:bg-gray-700' : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                } text-gray-900 dark:text-gray-100`}
+              >
+                <div className="flex items-center space-x-3">
+                  <BarChart3 className="w-5 h-5" />
+                  <span className="font-medium">Analyze</span>
+                </div>
+                <ChevronDown className={`w-4 h-4 transition-transform ${isDropdownOpen ? 'rotate-0' : 'rotate-[-90deg]'}`} />
+              </button>
+              
+              {/* Dropdown Menu */}
+              {isDropdownOpen && (
+                <div className="ml-8 mt-1 space-y-1">
+                  <button
+                    onClick={() => {
+                      setTimeRange('day');
+                    }}
+                    className={`w-full text-left px-4 py-2 rounded-lg text-sm transition-colors ${
+                      timeRange === 'day'
+                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    Day
+                  </button>
+                  <button
+                    onClick={() => {
+                      setTimeRange('week');
+                    }}
+                    className={`w-full text-left px-4 py-2 rounded-lg text-sm transition-colors ${
+                      timeRange === 'week'
+                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    Week
+                  </button>
+                  <button
+                    onClick={() => {
+                      setTimeRange('month');
+                    }}
+                    className={`w-full text-left px-4 py-2 rounded-lg text-sm transition-colors ${
+                      timeRange === 'month'
+                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    Month
+                  </button>
+                  <button
+                    onClick={() => {
+                      setTimeRange('year');
+                    }}
+                    className={`w-full text-left px-4 py-2 rounded-lg text-sm transition-colors ${
+                      timeRange === 'year'
+                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    Year
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -349,16 +370,16 @@ const AnalyzePage = () => {
         {/* Page Header */}
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+            {timeRange === 'day' && 'Daily Analytics'}
             {timeRange === 'week' && 'Weekly Analytics'}
             {timeRange === 'month' && 'Monthly Analytics'}
             {timeRange === 'year' && 'Yearly Analytics'}
-            {timeRange === 'all' && 'All-Time Analytics'}
           </h2>
           <p className="text-gray-600 dark:text-gray-400">
+            {timeRange === 'day' && 'Your productivity over the last 24 hours'}
             {timeRange === 'week' && 'Your productivity over the last 7 days'}
             {timeRange === 'month' && 'Your productivity over the last 30 days'}
             {timeRange === 'year' && 'Your productivity over the past year'}
-            {timeRange === 'all' && 'Your complete productivity journey'}
           </p>
         </div>
 
