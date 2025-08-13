@@ -389,6 +389,7 @@ const FocusPage = () => {
                     <Plus className="w-4 h-4" />
                   </button>
                 </div>
+                </div>
               )}
 
               {/* Iterations - Hide for stopwatch and flowtime */}
