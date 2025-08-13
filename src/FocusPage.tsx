@@ -1,55 +1,213 @@
 import { useState, useEffect, useRef } from 'react';
-import { Play, Pause, Volume2, Settings, FileText, CheckSquare } from 'lucide-react';
+import { Play, Pause, Volume2, Settings, FileText, CheckSquare, Timer } from 'lucide-react';
 import { useTodos } from './context/TodoContext';
+
+type TimerMode = 'pomodoro' | '52-17' | 'flowtime' | '90-20' | '2-minute' | 'reverse-pomodoro' | 'stopwatch' | 'custom';
+
+interface TimerConfig {
+  name: string;
+  description: string;
+  workTime: number; // in seconds
+  breakTime: number; // in seconds
+  icon?: React.ReactNode;
+}
+
+const timerConfigs: Record<TimerMode, TimerConfig> = {
+  'pomodoro': {
+    name: 'Pomodoro',
+    description: '25 min work, 5 min break',
+    workTime: 25 * 60,
+    breakTime: 5 * 60,
+  },
+  '52-17': {
+    name: '52/17 Rule',
+    description: '52 min work, 17 min break',
+    workTime: 52 * 60,
+    breakTime: 17 * 60,
+  },
+  'flowtime': {
+    name: 'Flowtime',
+    description: 'Work until you lose focus',
+    workTime: 0, // No preset time
+    breakTime: 5 * 60,
+  },
+  '90-20': {
+    name: '90/20 Rule',
+    description: '90 min deep focus, 20 min rest',
+    workTime: 90 * 60,
+    breakTime: 20 * 60,
+  },
+  '2-minute': {
+    name: '2-Minute Rule',
+    description: 'Start with just 2 minutes',
+    workTime: 2 * 60,
+    breakTime: 1 * 60,
+  },
+  'reverse-pomodoro': {
+    name: 'Reverse Pomodoro',
+    description: 'Start with a break, then work',
+    workTime: 25 * 60,
+    breakTime: 5 * 60, // Break comes first
+  },
+  'stopwatch': {
+    name: 'Stopwatch',
+    description: 'Basic timer, count up',
+    workTime: 0,
+    breakTime: 0,
+  },
+  'custom': {
+    name: 'Custom',
+    description: 'Set your own times',
+    workTime: 25 * 60, // Default values
+    breakTime: 5 * 60,
+  },
+};
 
 const FocusPage = () => {
   const [isRunning, setIsRunning] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(5 * 60);
+  const [timerMode, setTimerMode] = useState<TimerMode>('pomodoro');
+  const [isBreakTime, setIsBreakTime] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(timerConfigs['pomodoro'].workTime);
+  const [elapsedTime, setElapsedTime] = useState(0); // For stopwatch and flowtime
   const [selectedTodoId, setSelectedTodoId] = useState('');
+  const [showModeSelector, setShowModeSelector] = useState(false);
+  const [customWorkTime, setCustomWorkTime] = useState(25); // in minutes
+  const [customBreakTime, setCustomBreakTime] = useState(5); // in minutes
+  const [showCustomSettings, setShowCustomSettings] = useState(false);
   const sessionStartTime = useRef<Date | null>(null);
   const sessionTimeElapsed = useRef(0);
   
   const { todos, addSessionToTodo } = useTodos();
   const activeTodos = todos.filter(todo => !todo.completed);
 
+  // Get current timer configuration
+  const getCurrentConfig = () => {
+    if (timerMode === 'custom') {
+      return {
+        ...timerConfigs.custom,
+        workTime: customWorkTime * 60,
+        breakTime: customBreakTime * 60,
+      };
+    }
+    return timerConfigs[timerMode];
+  };
+
   // Timer logic
   useEffect(() => {
     let interval: number | null = null;
-    if (isRunning && timeLeft > 0) {
-      interval = setInterval(() => {
-        setTimeLeft(timeLeft => timeLeft - 1);
-        sessionTimeElapsed.current += 1;
-      }, 1000) as unknown as number;
-    } else if (timeLeft === 0) {
-      // Timer completed
-      handleTimerComplete();
+    
+    if (isRunning) {
+      if (timerMode === 'stopwatch' || timerMode === 'flowtime') {
+        // Count up for stopwatch and flowtime
+        interval = setInterval(() => {
+          setElapsedTime(prev => prev + 1);
+          sessionTimeElapsed.current += 1;
+        }, 1000) as unknown as number;
+      } else if (timeLeft > 0) {
+        // Count down for other modes
+        interval = setInterval(() => {
+          setTimeLeft(timeLeft => timeLeft - 1);
+          sessionTimeElapsed.current += 1;
+        }, 1000) as unknown as number;
+      } else if (timeLeft === 0) {
+        // Timer completed
+        handleTimerComplete();
+      }
     }
+    
     return () => {
       if (interval !== null) clearInterval(interval);
     };
-  }, [isRunning, timeLeft]);
+  }, [isRunning, timeLeft, timerMode]);
 
   const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
+    const hours = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
-    return mins.toString().padStart(2, '0') + ':' + secs.toString().padStart(2, '0');
+    
+    if (hours > 0) {
+      return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   const startTimer = () => {
     sessionStartTime.current = new Date();
     sessionTimeElapsed.current = 0;
+    
+    // Handle reverse pomodoro - start with break
+    if (timerMode === 'reverse-pomodoro' && !isBreakTime && timeLeft === getCurrentConfig().workTime) {
+      setIsBreakTime(true);
+      setTimeLeft(getCurrentConfig().breakTime);
+    }
+    
     setIsRunning(true);
   };
 
   const pauseTimer = () => {
     setIsRunning(false);
-    saveSession();
+    if (timerMode !== 'flowtime' && timerMode !== 'stopwatch') {
+      saveSession();
+    }
   };
 
   const handleTimerComplete = () => {
     setIsRunning(false);
-    saveSession();
-    setTimeLeft(5 * 60); // Reset timer
+    
+    const config = getCurrentConfig();
+    
+    // Toggle between work and break
+    if (isBreakTime) {
+      // Break is over, start work
+      setIsBreakTime(false);
+      setTimeLeft(config.workTime);
+    } else {
+      // Work is over, start break (if applicable)
+      saveSession();
+      if (config.breakTime > 0) {
+        setIsBreakTime(true);
+        setTimeLeft(config.breakTime);
+        // Auto-start break
+        setIsRunning(true);
+      } else {
+        setTimeLeft(config.workTime);
+      }
+    }
+  };
+
+  const resetTimer = () => {
+    setIsRunning(false);
+    setIsBreakTime(false);
+    setElapsedTime(0);
+    sessionTimeElapsed.current = 0;
+    sessionStartTime.current = null;
+    
+    const config = getCurrentConfig();
+    if (timerMode === 'reverse-pomodoro') {
+      setTimeLeft(config.workTime);
+    } else if (timerMode === 'stopwatch' || timerMode === 'flowtime') {
+      setTimeLeft(0);
+    } else {
+      setTimeLeft(config.workTime);
+    }
+  };
+
+  const handleModeChange = (mode: TimerMode) => {
+    setTimerMode(mode);
+    setIsRunning(false);
+    setIsBreakTime(false);
+    setElapsedTime(0);
+    sessionTimeElapsed.current = 0;
+    
+    if (mode === 'custom') {
+      setShowCustomSettings(true);
+      setTimeLeft(customWorkTime * 60);
+    } else {
+      const config = timerConfigs[mode];
+      setTimeLeft(config.workTime);
+    }
+    
+    setShowModeSelector(false);
   };
 
   const saveSession = async () => {
@@ -66,14 +224,126 @@ const FocusPage = () => {
     }
   };
 
-  const progress = ((5 * 60 - timeLeft) / (5 * 60)) * 100;
+  // Calculate progress based on mode
+  const getProgress = () => {
+    if (timerMode === 'stopwatch' || timerMode === 'flowtime') {
+      return 0; // No progress bar for count-up modes
+    }
+    const config = getCurrentConfig();
+    const totalTime = isBreakTime ? config.breakTime : config.workTime;
+    if (totalTime === 0) return 0;
+    return ((totalTime - timeLeft) / totalTime) * 100;
+  };
 
+  const progress = getProgress();
   const selectedTodo = todos.find(t => t.id === selectedTodoId);
+  
+  // Get display time based on mode
+  const getDisplayTime = () => {
+    if (timerMode === 'stopwatch' || timerMode === 'flowtime') {
+      return formatTime(elapsedTime);
+    }
+    return formatTime(timeLeft);
+  };
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-8 bg-white dark:bg-gray-900">
+    <div className="flex-1 flex flex-col items-center justify-center p-8 bg-white dark:bg-gray-900 relative">
+      {/* Mode Selector Button */}
+      <div className="absolute top-8 right-8">
+        <button
+          onClick={() => setShowModeSelector(!showModeSelector)}
+          className="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg flex items-center space-x-2"
+        >
+          <Timer className="w-4 h-4" />
+          <span className="text-sm font-medium">{getCurrentConfig().name}</span>
+        </button>
+      </div>
+
+      {/* Mode Selector Modal */}
+      {showModeSelector && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Choose Timer Mode</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {Object.entries(timerConfigs).map(([key, config]) => (
+                <button
+                  key={key}
+                  onClick={() => handleModeChange(key as TimerMode)}
+                  className={`p-4 rounded-lg border text-left transition-colors ${
+                    timerMode === key
+                      ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
+                      : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">{config.name}</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{config.description}</p>
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setShowModeSelector(false)}
+              className="mt-4 w-full py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Time Settings Modal */}
+      {showCustomSettings && timerMode === 'custom' && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Custom Timer Settings</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Work Time (minutes)
+                </label>
+                <input
+                  type="number"
+                  value={customWorkTime}
+                  onChange={(e) => setCustomWorkTime(Math.max(1, parseInt(e.target.value) || 1))}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  min="1"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Break Time (minutes)
+                </label>
+                <input
+                  type="number"
+                  value={customBreakTime}
+                  onChange={(e) => setCustomBreakTime(Math.max(0, parseInt(e.target.value) || 0))}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  min="0"
+                />
+              </div>
+            </div>
+            <div className="flex space-x-3 mt-6">
+              <button
+                onClick={() => {
+                  setTimeLeft(customWorkTime * 60);
+                  setShowCustomSettings(false);
+                }}
+                className="flex-1 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg"
+              >
+                Apply
+              </button>
+              <button
+                onClick={() => setShowCustomSettings(false)}
+                className="flex-1 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Task Selector */}
-      <div className="w-full max-w-xs mb-16">
+      <div className="w-full max-w-xs mb-8">
         <select 
           value={selectedTodoId}
           onChange={(e) => setSelectedTodoId(e.target.value)}
@@ -122,33 +392,46 @@ const FocusPage = () => {
           
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <p className="text-gray-600 dark:text-gray-400 text-lg mb-2 font-medium">
-              {selectedTodo ? 'Focusing on' : 'Focus'}
+              {isBreakTime ? 'Break Time' : (selectedTodo ? 'Focusing on' : 'Focus')}
             </p>
-            {selectedTodo && (
+            {selectedTodo && !isBreakTime && (
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-2 max-w-[200px] text-center truncate">
                 {selectedTodo.text}
               </p>
             )}
             <p className="text-5xl font-light text-gray-900 dark:text-gray-100">
-              {formatTime(timeLeft)}
+              {getDisplayTime()}
             </p>
+            {(timerMode === 'flowtime' || timerMode === 'stopwatch') && (
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                {timerMode === 'flowtime' ? 'Track your flow' : 'Elapsed time'}
+              </p>
+            )}
           </div>
         </div>
       </div>
 
       {/* Start Focus Session Button */}
-      {!isRunning && timeLeft === 5 * 60 && (
+      {!isRunning && !isBreakTime && (
+        timerMode === 'stopwatch' || timerMode === 'flowtime' ? elapsedTime === 0 : timeLeft === getCurrentConfig().workTime
+      ) && (
         <button
           onClick={startTimer}
           className="mb-12 px-8 py-3 bg-green-500 hover:bg-green-600 text-white rounded-full font-medium flex items-center space-x-2"
         >
           <Play className="w-4 h-4" />
-          <span>Start Focus Session</span>
+          <span>
+            {timerMode === 'stopwatch' ? 'Start Stopwatch' : 
+             timerMode === 'flowtime' ? 'Start Flow Session' :
+             isBreakTime ? 'Start Break' : 'Start Focus Session'}
+          </span>
         </button>
       )}
 
-      {/* Control Buttons for when timer is running */}
-      {(isRunning || timeLeft !== 5 * 60) && (
+      {/* Control Buttons for when timer is running or paused */}
+      {(isRunning || (!isRunning && (
+        (timerMode === 'stopwatch' || timerMode === 'flowtime' ? elapsedTime > 0 : timeLeft !== getCurrentConfig().workTime) || isBreakTime
+      ))) && (
         <div className="flex items-center space-x-4 mb-12">
           <button
             onClick={isRunning ? pauseTimer : startTimer}
@@ -165,16 +448,30 @@ const FocusPage = () => {
             <Volume2 className="w-5 h-5" />
           </button>
 
-          {!isRunning && timeLeft !== 5 * 60 && (
+          {!isRunning && (
             <button
-              onClick={() => {
-                setTimeLeft(5 * 60);
-                sessionTimeElapsed.current = 0;
-                sessionStartTime.current = null;
-              }}
-              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm"
+              onClick={resetTimer}
+              className="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm"
             >
               Reset
+            </button>
+          )}
+
+          {/* End Flow Session button for Flowtime mode */}
+          {timerMode === 'flowtime' && isRunning && (
+            <button
+              onClick={() => {
+                setIsRunning(false);
+                saveSession();
+                // Optionally start break
+                if (getCurrentConfig().breakTime > 0) {
+                  setIsBreakTime(true);
+                  setTimeLeft(getCurrentConfig().breakTime);
+                }
+              }}
+              className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm"
+            >
+              End Flow
             </button>
           )}
         </div>
