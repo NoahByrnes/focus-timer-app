@@ -286,12 +286,12 @@ const FocusPage = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-8 bg-white dark:bg-gray-900 relative">
+    <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 bg-white dark:bg-gray-900 relative">
 
       {/* Configure Menu Modal */}
       {showConfigureMenu && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Configure Timer</h2>
               <button
@@ -494,8 +494,8 @@ const FocusPage = () => {
 
       {/* Log Menu Modal */}
       {showLogMenu && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Session Notes</h2>
               <button
@@ -560,12 +560,12 @@ const FocusPage = () => {
       )}
 
       {/* Task Selector */}
-      <div className="w-full max-w-xs mb-8">
+      <div className="w-full max-w-xs mb-6 sm:mb-8">
         <select 
           value={selectedTodoId}
           onChange={(e) => setSelectedTodoId(e.target.value)}
           disabled={isRunning}
-          className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 appearance-none text-gray-700 dark:text-gray-300 text-sm disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed"
+          className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 appearance-none text-gray-700 dark:text-gray-300 text-sm disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed"
         >
           <option value="">Unallocated (No specific task)</option>
           {activeTodos.map(todo => (
@@ -582,8 +582,8 @@ const FocusPage = () => {
       </div>
 
       {/* Timer Circle */}
-      <div className="relative mb-16">
-        <div className="w-72 h-72">
+      <div className="relative mb-8 sm:mb-12 lg:mb-16">
+        <div className="w-60 h-60 sm:w-72 sm:h-72">
           <svg className="w-full h-full transform -rotate-90" viewBox="0 0 200 200">
             <circle
               cx="100"
@@ -608,19 +608,19 @@ const FocusPage = () => {
           </svg>
           
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <p className="text-gray-600 dark:text-gray-400 text-lg mb-2 font-medium">
+            <p className="text-gray-600 dark:text-gray-400 text-base sm:text-lg mb-1 sm:mb-2 font-medium">
               {isBreakTime ? 'Break Time' : (selectedTodo ? 'Focusing on' : 'Focus')}
             </p>
             {selectedTodo && !isBreakTime && (
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-2 max-w-[200px] text-center truncate">
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-1 sm:mb-2 max-w-[150px] sm:max-w-[200px] text-center truncate">
                 {selectedTodo.text}
               </p>
             )}
-            <p className="text-5xl font-light text-gray-900 dark:text-gray-100">
+            <p className="text-3xl sm:text-4xl lg:text-5xl font-light text-gray-900 dark:text-gray-100">
               {getDisplayTime()}
             </p>
             {(timerMode === 'flowtime' || timerMode === 'stopwatch') && (
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1 sm:mt-2">
                 {timerMode === 'flowtime' ? 'Track your flow' : 'Elapsed time'}
               </p>
             )}
@@ -634,7 +634,7 @@ const FocusPage = () => {
       ) && (
         <button
           onClick={startTimer}
-          className="mb-12 px-8 py-3 bg-green-500 hover:bg-green-600 text-white rounded-full font-medium flex items-center space-x-2"
+          className="mb-8 sm:mb-12 px-6 sm:px-8 py-2.5 sm:py-3 bg-green-500 hover:bg-green-600 text-white rounded-full font-medium flex items-center space-x-2 text-sm sm:text-base"
         >
           <Play className="w-4 h-4" />
           <span>
@@ -649,26 +649,26 @@ const FocusPage = () => {
       {(isRunning || (!isRunning && (
         (timerMode === 'stopwatch' || timerMode === 'flowtime' ? elapsedTime > 0 : timeLeft !== getCurrentConfig().workTime) || isBreakTime
       ))) && (
-        <div className="flex items-center space-x-4 mb-12">
+        <div className="flex items-center space-x-3 sm:space-x-4 mb-8 sm:mb-12">
           <button
             onClick={isRunning ? pauseTimer : startTimer}
-            className="flex items-center justify-center w-14 h-14 bg-green-500 hover:bg-green-600 text-white rounded-full"
+            className="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 bg-green-500 hover:bg-green-600 text-white rounded-full"
           >
             {isRunning ? (
-              <Pause className="w-5 h-5" />
+              <Pause className="w-4 h-4 sm:w-5 sm:h-5" />
             ) : (
-              <Play className="w-5 h-5 ml-0.5" />
+              <Play className="w-4 h-4 sm:w-5 sm:h-5 ml-0.5" />
             )}
           </button>
           
-          <button className="p-3 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
-            <Volume2 className="w-5 h-5" />
+          <button className="p-2 sm:p-3 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
+            <Volume2 className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
 
           {!isRunning && (
             <button
               onClick={resetTimer}
-              className="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm"
+              className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-xs sm:text-sm"
             >
               Reset
             </button>
@@ -687,7 +687,7 @@ const FocusPage = () => {
                   setIsRunning(true);
                 }
               }}
-              className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm"
+              className="px-3 sm:px-4 py-1.5 sm:py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-xs sm:text-sm"
             >
               End Flow
             </button>
@@ -696,40 +696,40 @@ const FocusPage = () => {
       )}
 
       {/* Action Buttons and Timer Mode Selector */}
-      <div className="flex flex-col items-center space-y-4">
+      <div className="flex flex-col items-center space-y-3 sm:space-y-4">
         {/* Timer Mode Selector Dropdown */}
         <div className="relative">
           <select
             value={timerMode}
             onChange={(e) => handleModeChange(e.target.value as TimerMode)}
-            className="px-4 py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg appearance-none pr-10 text-sm font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg appearance-none pr-8 sm:pr-10 text-xs sm:text-sm font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-green-500"
           >
-            <option value="pomodoro">Pomodoro (25/5)</option>
-            <option value="52-17">52/17 Rule</option>
+            <option value="pomodoro">Pomodoro</option>
+            <option value="52-17">52/17</option>
             <option value="flowtime">Flowtime</option>
-            <option value="90-20">90/20 Rule</option>
-            <option value="2-minute">2-Minute Rule</option>
-            <option value="reverse-pomodoro">Reverse Pomodoro</option>
+            <option value="90-20">90/20</option>
+            <option value="2-minute">2-Minute</option>
+            <option value="reverse-pomodoro">Reverse</option>
             <option value="stopwatch">Stopwatch</option>
           </select>
-          <Timer className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
+          <Timer className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2 w-3 h-3 sm:w-4 sm:h-4 text-gray-500 pointer-events-none" />
         </div>
         
         {/* Configure and Log Buttons */}
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-2 sm:space-x-3">
           <button 
             onClick={() => setShowConfigureMenu(true)}
-            className="px-5 py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg flex items-center space-x-2"
+            className="px-4 sm:px-5 py-2 sm:py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg flex items-center space-x-1.5 sm:space-x-2"
           >
-            <Settings className="w-4 h-4" />
-            <span className="text-sm font-medium">Configure</span>
+            <Settings className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="text-xs sm:text-sm font-medium">Configure</span>
           </button>
           <button 
             onClick={() => setShowLogMenu(true)}
-            className="px-5 py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg flex items-center space-x-2"
+            className="px-4 sm:px-5 py-2 sm:py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg flex items-center space-x-1.5 sm:space-x-2"
           >
-            <FileText className="w-4 h-4" />
-            <span className="text-sm font-medium">Log</span>
+            <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="text-xs sm:text-sm font-medium">Log</span>
           </button>
         </div>
       </div>

@@ -263,7 +263,7 @@ const AnalyzePage = ({ timeRange = 'week' }: AnalyzePageProps) => {
   const trendPercentage = Math.abs(Math.round(((totalTime - previousPeriodTime) / previousPeriodTime) * 100));
 
   return (
-    <div className="flex-1 flex flex-col p-8 bg-white dark:bg-gray-900">
+    <div className="flex-1 flex flex-col p-4 sm:p-6 lg:p-8 bg-white dark:bg-gray-900 overflow-x-hidden">
       <div className="max-w-6xl w-full mx-auto">
 
         {/* Page Header */}
@@ -384,8 +384,8 @@ const AnalyzePage = ({ timeRange = 'week' }: AnalyzePageProps) => {
                 </div>
               </div>
 
-              <div className="overflow-x-auto">
-                <div className="flex space-x-4">
+              <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+                <div className="flex space-x-2 sm:space-x-4 min-w-max">
                   {generateContributionGrid().map((monthData, monthIndex) => {
                     // Calculate monthly total
                     const monthTotal = monthData.grid.flat()
