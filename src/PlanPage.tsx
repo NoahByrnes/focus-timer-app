@@ -4,7 +4,7 @@ import { useTodos } from './context/TodoContext';
 import { TagSelector } from './components/TagSelector';
 
 const PlanPage = () => {
-  const { todos, tags, loading, error, addTodo, toggleTodo, deleteTodo, updateTodo, updateTodoTag, addTag, deleteTag } = useTodos();
+  const { todos, tags, loading, addTodo, toggleTodo, deleteTodo, updateTodo, updateTodoTag, addTag, deleteTag } = useTodos();
   const [newTodo, setNewTodo] = useState('');
   const [newTodoTagId, setNewTodoTagId] = useState<string>('');
   const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all');

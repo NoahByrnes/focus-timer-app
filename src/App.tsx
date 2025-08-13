@@ -2,6 +2,10 @@ import { BrowserRouter as Router, Routes, Route, NavLink, Navigate } from 'react
 import { Target, Calendar, BarChart3, FileText, Settings, LogOut, User, Moon, Sun } from 'lucide-react';
 import FocusPage from './FocusPage';
 import PlanPage from './PlanPage';
+import ReviewPage from './ReviewPage';
+import AnalyzePage from './AnalyzePage';
+import SettingsPage from './SettingsPage';
+import ProfilePage from './ProfilePage';
 import { TodoProvider } from './context/TodoContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
@@ -83,16 +87,34 @@ const MainApp = () => {
               </NavLink>
             </li>
             <li>
-              <button className="flex items-center space-x-3 px-3 py-2.5 w-full text-left rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800">
+              <NavLink
+                to="/review"
+                className={({ isActive }) =>
+                  `flex items-center space-x-3 px-3 py-2.5 w-full text-left rounded-lg ${
+                    isActive
+                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
+                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
+                  }`
+                }
+              >
                 <FileText className="w-4 h-4" />
                 <span className="text-sm">Review</span>
-              </button>
+              </NavLink>
             </li>
             <li>
-              <button className="flex items-center space-x-3 px-3 py-2.5 w-full text-left rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800">
+              <NavLink
+                to="/analyze"
+                className={({ isActive }) =>
+                  `flex items-center space-x-3 px-3 py-2.5 w-full text-left rounded-lg ${
+                    isActive
+                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
+                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
+                  }`
+                }
+              >
                 <BarChart3 className="w-4 h-4" />
                 <span className="text-sm">Analyze</span>
-              </button>
+              </NavLink>
             </li>
           </ul>
         </nav>
@@ -121,14 +143,32 @@ const MainApp = () => {
               )}
               <span className="text-sm">{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
             </button>
-            <button className="flex items-center space-x-3 px-3 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg w-full text-left ">
+            <NavLink
+              to="/settings"
+              className={({ isActive }) =>
+                `flex items-center space-x-3 px-3 py-2 rounded-lg w-full text-left ${
+                  isActive
+                    ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
+                }`
+              }
+            >
               <Settings className="w-4 h-4" />
               <span className="text-sm">Settings</span>
-            </button>
-            <button className="flex items-center space-x-3 px-3 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg w-full text-left ">
+            </NavLink>
+            <NavLink
+              to="/profile"
+              className={({ isActive }) =>
+                `flex items-center space-x-3 px-3 py-2 rounded-lg w-full text-left ${
+                  isActive
+                    ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
+                }`
+              }
+            >
               <User className="w-4 h-4" />
               <span className="text-sm">Profile</span>
-            </button>
+            </NavLink>
             <button 
               onClick={handleSignOut}
               className="flex items-center space-x-3 px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 rounded-lg w-full text-left"
@@ -150,6 +190,26 @@ const MainApp = () => {
         <Route path="/plan" element={
           <ProtectedRoute>
             <PlanPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/review" element={
+          <ProtectedRoute>
+            <ReviewPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/analyze" element={
+          <ProtectedRoute>
+            <AnalyzePage />
+          </ProtectedRoute>
+        } />
+        <Route path="/settings" element={
+          <ProtectedRoute>
+            <SettingsPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/profile" element={
+          <ProtectedRoute>
+            <ProfilePage />
           </ProtectedRoute>
         } />
         <Route path="/auth" element={<Auth />} />
