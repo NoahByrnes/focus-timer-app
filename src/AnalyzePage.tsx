@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BarChart3, TrendingUp, Clock, Target, Calendar, ArrowUp, ArrowDown, Minus } from 'lucide-react';
+import { BarChart3, TrendingUp, Clock, Target, Calendar, ArrowUp, ArrowDown, Minus, ChevronDown } from 'lucide-react';
 import { useTodos } from './context/TodoContext';
 
 interface TagStats {
@@ -25,6 +25,7 @@ const AnalyzePage = () => {
   const [productiveDays, setProductiveDays] = useState<string[]>([]);
   const [dailyData, setDailyData] = useState<Map<string, number>>(new Map());
   const [hoveredDay, setHoveredDay] = useState<{date: Date, studyTime: number, x: number, y: number} | null>(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   useEffect(() => {
     calculateAnalytics();
@@ -154,9 +155,6 @@ const AnalyzePage = () => {
 
   const totalTime = tagStats.reduce((acc, stat) => acc + stat.totalTime, 0);
   const totalSessions = tagStats.reduce((acc, stat) => acc + stat.sessions, 0);
-  const totalCompleted = tagStats.reduce((acc, stat) => acc + stat.completedTasks, 0);
-  const totalTasks = tagStats.reduce((acc, stat) => acc + stat.totalTasks, 0);
-  const completionRate = totalTasks > 0 ? Math.round((totalCompleted / totalTasks) * 100) : 0;
   const averageSessionLength = totalSessions > 0 ? Math.round(totalTime / totalSessions / 60) : 0;
 
   // Find peak hours
@@ -263,142 +261,192 @@ const AnalyzePage = () => {
   const trendPercentage = Math.abs(Math.round(((totalTime - previousPeriodTime) / previousPeriodTime) * 100));
 
   return (
-    <div className="flex-1 flex flex-col p-8 bg-white dark:bg-gray-900">
-      <div className="max-w-6xl w-full mx-auto">
-        {/* Header */}
+    <div className="flex-1 flex bg-white dark:bg-gray-900">
+      {/* Sidebar */}
+      <div className="w-64 bg-gray-50 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
+        <div className="p-6">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Analytics</h1>
+          <p className="text-gray-600 dark:text-gray-400 text-sm mb-6">Deep insights into your productivity patterns</p>
+          
+          {/* Analyze Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="w-full flex items-center justify-between px-4 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg text-left"
+            >
+              <div className="flex items-center space-x-3">
+                <BarChart3 className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                <span className="font-medium text-gray-900 dark:text-gray-100">Analyze</span>
+              </div>
+              <ChevronDown className={`w-4 h-4 text-gray-600 dark:text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+            
+            {/* Dropdown Menu */}
+            {isDropdownOpen && (
+              <div className="mt-2 space-y-1">
+                <button
+                  onClick={() => {
+                    setTimeRange('week');
+                    setIsDropdownOpen(false);
+                  }}
+                  className={`w-full text-left px-4 py-2 rounded-lg text-sm transition-colors ${
+                    timeRange === 'week'
+                      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  Week
+                </button>
+                <button
+                  onClick={() => {
+                    setTimeRange('month');
+                    setIsDropdownOpen(false);
+                  }}
+                  className={`w-full text-left px-4 py-2 rounded-lg text-sm transition-colors ${
+                    timeRange === 'month'
+                      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  Month
+                </button>
+                <button
+                  onClick={() => {
+                    setTimeRange('year');
+                    setIsDropdownOpen(false);
+                  }}
+                  className={`w-full text-left px-4 py-2 rounded-lg text-sm transition-colors ${
+                    timeRange === 'year'
+                      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  Year
+                </button>
+                <button
+                  onClick={() => {
+                    setTimeRange('all');
+                    setIsDropdownOpen(false);
+                  }}
+                  className={`w-full text-left px-4 py-2 rounded-lg text-sm transition-colors ${
+                    timeRange === 'all'
+                      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  All time
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 p-8">
+        <div className="max-w-6xl w-full mx-auto">
+
+        {/* Page Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Analytics</h1>
-          <p className="text-gray-600 dark:text-gray-400">Deep insights into your productivity patterns</p>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+            {timeRange === 'week' && 'Weekly Analytics'}
+            {timeRange === 'month' && 'Monthly Analytics'}
+            {timeRange === 'year' && 'Yearly Analytics'}
+            {timeRange === 'all' && 'All-Time Analytics'}
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400">
+            {timeRange === 'week' && 'Your productivity over the last 7 days'}
+            {timeRange === 'month' && 'Your productivity over the last 30 days'}
+            {timeRange === 'year' && 'Your productivity over the past year'}
+            {timeRange === 'all' && 'Your complete productivity journey'}
+          </p>
         </div>
 
-        {/* Time Range Selector */}
-        <div className="flex items-center space-x-2 mb-6">
-          <button
-            onClick={() => setTimeRange('week')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium ${
-              timeRange === 'week'
-                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
-            }`}
-          >
-            Last 7 days
-          </button>
-          <button
-            onClick={() => setTimeRange('month')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium ${
-              timeRange === 'month'
-                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
-            }`}
-          >
-            Last 30 days
-          </button>
-          <button
-            onClick={() => setTimeRange('year')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium ${
-              timeRange === 'year'
-                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
-            }`}
-          >
-            Last year
-          </button>
-          <button
-            onClick={() => setTimeRange('all')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium ${
-              timeRange === 'all'
-                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
-            }`}
-          >
-            All time
-          </button>
+        {/* Stats Grid - Common for all views */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+          <div className="text-center bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+            <div className="flex items-center justify-center w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg mx-auto mb-2">
+              <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              {formatTime(totalTime)}
+            </div>
+            <div className="text-sm text-blue-600 dark:text-blue-400 font-medium">Focus Time</div>
+          </div>
+
+          <div className="text-center bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+            <div className="flex items-center justify-center w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg mx-auto mb-2">
+              <Target className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+            </div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              {totalSessions}
+            </div>
+            <div className="text-sm text-purple-600 dark:text-purple-400 font-medium">Sessions</div>
+          </div>
+
+          <div className="text-center bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+            <div className="flex items-center justify-center w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg mx-auto mb-2">
+              <Calendar className="w-5 h-5 text-green-600 dark:text-green-400" />
+            </div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              {Array.from(dailyData.values()).filter(time => time > 0).length}
+            </div>
+            <div className="text-sm text-green-600 dark:text-green-400 font-medium">Focus Days</div>
+          </div>
+
+          <div className="text-center bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+            <div className="flex items-center justify-center w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg mx-auto mb-2">
+              <BarChart3 className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+            </div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              {averageSessionLength}m
+            </div>
+            <div className="text-sm text-indigo-600 dark:text-indigo-400 font-medium">Avg Session</div>
+          </div>
+
+          <div className="text-center bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+            <div className="flex items-center justify-center w-10 h-10 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg mx-auto mb-2">
+              <TrendingUp className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+            </div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              {Array.from(dailyData.values()).length > 0 ? Math.max(...Array.from(dailyData.values())) > 0 ? formatTime(Math.max(...Array.from(dailyData.values()))) : '0m' : '0m'}
+            </div>
+            <div className="text-sm text-yellow-600 dark:text-yellow-400 font-medium">Best Day</div>
+          </div>
+
+          <div className="text-center bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+            <div className="flex items-center justify-center w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-lg mx-auto mb-2">
+              <Calendar className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+            </div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              {(() => {
+                // Calculate best week (7-day period with most study time)
+                const weekTotals = new Map<string, number>();
+                Array.from(dailyData.entries()).forEach(([date, time]) => {
+                  const d = new Date(date);
+                  const startOfWeek = new Date(d);
+                  startOfWeek.setDate(d.getDate() - d.getDay());
+                  const weekKey = startOfWeek.toISOString().split('T')[0];
+                  weekTotals.set(weekKey, (weekTotals.get(weekKey) || 0) + time);
+                });
+                const maxWeekTime = Math.max(...Array.from(weekTotals.values()), 0);
+                return maxWeekTime > 0 ? formatTime(maxWeekTime) : '0m';
+              })()}
+            </div>
+            <div className="text-sm text-orange-600 dark:text-orange-400 font-medium">Best Week</div>
+          </div>
         </div>
 
-        {/* Year View Analytics */}
+        {/* Year View - Contribution Grid */}
         {timeRange === 'year' && (
-          <div className="mb-8 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-8">
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Study Activity</h2>
+          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-8">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Study Activity</h3>
               <div className="text-lg font-semibold text-gray-700 dark:text-gray-300">
                 {new Date().getFullYear()}
               </div>
             </div>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-              <div className="text-center">
-                <div className="flex items-center justify-center w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg mx-auto mb-2">
-                  <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                </div>
-                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  {formatTime(totalTime)}
-                </div>
-                <div className="text-sm text-blue-600 dark:text-blue-400 font-medium">Focus Time</div>
-              </div>
-
-              <div className="text-center">
-                <div className="flex items-center justify-center w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg mx-auto mb-2">
-                  <Target className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                </div>
-                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  {totalSessions}
-                </div>
-                <div className="text-sm text-purple-600 dark:text-purple-400 font-medium">Sessions</div>
-              </div>
-
-              <div className="text-center">
-                <div className="flex items-center justify-center w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg mx-auto mb-2">
-                  <Calendar className="w-5 h-5 text-green-600 dark:text-green-400" />
-                </div>
-                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  {Array.from(dailyData.values()).filter(time => time > 0).length}
-                </div>
-                <div className="text-sm text-green-600 dark:text-green-400 font-medium">Focus Days</div>
-              </div>
-
-              <div className="text-center">
-                <div className="flex items-center justify-center w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg mx-auto mb-2">
-                  <BarChart3 className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                </div>
-                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  {averageSessionLength}m
-                </div>
-                <div className="text-sm text-indigo-600 dark:text-indigo-400 font-medium">Avg Session</div>
-              </div>
-
-              <div className="text-center">
-                <div className="flex items-center justify-center w-10 h-10 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg mx-auto mb-2">
-                  <TrendingUp className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
-                </div>
-                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  {Array.from(dailyData.values()).length > 0 ? Math.max(...Array.from(dailyData.values())) > 0 ? formatTime(Math.max(...Array.from(dailyData.values()))) : '0m' : '0m'}
-                </div>
-                <div className="text-sm text-yellow-600 dark:text-yellow-400 font-medium">Best Day</div>
-              </div>
-
-              <div className="text-center">
-                <div className="flex items-center justify-center w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-lg mx-auto mb-2">
-                  <Calendar className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-                </div>
-                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  {(() => {
-                    // Calculate best week (7-day period with most study time)
-                    const weekTotals = new Map<string, number>();
-                    Array.from(dailyData.entries()).forEach(([date, time]) => {
-                      const d = new Date(date);
-                      const startOfWeek = new Date(d);
-                      startOfWeek.setDate(d.getDate() - d.getDay());
-                      const weekKey = startOfWeek.toISOString().split('T')[0];
-                      weekTotals.set(weekKey, (weekTotals.get(weekKey) || 0) + time);
-                    });
-                    const maxWeekTime = Math.max(...Array.from(weekTotals.values()), 0);
-                    return maxWeekTime > 0 ? formatTime(maxWeekTime) : '0m';
-                  })()}
-                </div>
-                <div className="text-sm text-orange-600 dark:text-orange-400 font-medium">Best Week</div>
-              </div>
-            </div>
             
             {/* Contribution Grid */}
             <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-6">
@@ -516,202 +564,177 @@ const AnalyzePage = () => {
           </div>
         )}
 
-        {/* Key Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-lg p-6">
-            <div className="flex items-center justify-between mb-2">
-              <Clock className="w-6 h-6 text-green-600 dark:text-green-400" />
-              <div className="flex items-center space-x-1">
-                {trend === 'up' && <ArrowUp className="w-4 h-4 text-green-600" />}
-                {trend === 'down' && <ArrowDown className="w-4 h-4 text-red-600" />}
-                {trend === 'neutral' && <Minus className="w-4 h-4 text-gray-600" />}
-                <span className={`text-sm font-medium ${
-                  trend === 'up' ? 'text-green-600' : trend === 'down' ? 'text-red-600' : 'text-gray-600'
-                }`}>
-                  {trendPercentage}%
-                </span>
+        {/* Week/Month/All Views - Charts and Analytics */}
+        {timeRange !== 'year' && (
+          <div className="space-y-6">
+            {/* Category Breakdown */}
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Category Breakdown</h3>
+              
+              <div className="space-y-4">
+                {tagStats.map((stat) => {
+                  const percentage = totalTime > 0 ? Math.round((stat.totalTime / totalTime) * 100) : 0;
+                  return (
+                    <div key={stat.tagId}>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center space-x-2">
+                          <div 
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: stat.tagColor }}
+                          />
+                          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                            {stat.tagName}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-3 text-sm">
+                          <span className="text-gray-500 dark:text-gray-400">{formatTime(stat.totalTime)}</span>
+                          <span className="font-medium text-gray-900 dark:text-gray-100">{percentage}%</span>
+                        </div>
+                      </div>
+                      <div className="relative h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                        <div
+                          className="absolute top-0 left-0 h-full rounded-full"
+                          style={{ 
+                            width: `${percentage}%`,
+                            backgroundColor: stat.tagColor
+                          }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {tagStats.length === 0 && (
+                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                    No data available for the selected period
+                  </div>
+                )}
               </div>
             </div>
-            <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">{formatTime(totalTime)}</p>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Total focus time</p>
-          </div>
 
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg p-6">
-            <div className="flex items-center justify-between mb-2">
-              <Target className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-            </div>
-            <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">{completionRate}%</p>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Completion rate</p>
-          </div>
-
-          <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-lg p-6">
-            <div className="flex items-center justify-between mb-2">
-              <BarChart3 className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-            </div>
-            <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">{averageSessionLength}m</p>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Avg session length</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Category Breakdown */}
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Category Breakdown</h2>
-            
-            <div className="space-y-4">
-              {tagStats.map((stat) => {
-                const percentage = totalTime > 0 ? Math.round((stat.totalTime / totalTime) * 100) : 0;
-                return (
-                  <div key={stat.tagId}>
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center space-x-2">
-                        <div 
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: stat.tagColor }}
+            {/* Hourly Distribution */}
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Hourly Distribution</h3>
+              
+              <div className="h-48 flex items-end space-x-1">
+                {timeDistribution.map((dist) => {
+                  const height = maxDistributionTime > 0 ? (dist.time / maxDistributionTime) * 100 : 0;
+                  const isActive = dist.time > 0;
+                  return (
+                    <div
+                      key={dist.hour}
+                      className="flex-1 flex flex-col items-center"
+                    >
+                      <div className="w-full relative flex-1 flex items-end">
+                        <div
+                          className={`w-full rounded-t ${
+                            isActive 
+                              ? 'bg-gradient-to-t from-green-500 to-green-400' 
+                              : 'bg-gray-200 dark:bg-gray-700'
+                          }`}
+                          style={{ height: `${height}%`, minHeight: isActive ? '4px' : '1px' }}
                         />
-                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                          {stat.tagName}
+                      </div>
+                      {dist.hour % 3 === 0 && (
+                        <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          {dist.hour}
                         </span>
-                      </div>
-                      <div className="flex items-center space-x-3 text-sm">
-                        <span className="text-gray-500 dark:text-gray-400">{formatTime(stat.totalTime)}</span>
-                        <span className="font-medium text-gray-900 dark:text-gray-100">{percentage}%</span>
-                      </div>
+                      )}
                     </div>
-                    <div className="relative h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-                      <div
-                        className="absolute top-0 left-0 h-full rounded-full"
-                        style={{ 
-                          width: `${percentage}%`,
-                          backgroundColor: stat.tagColor
-                        }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-2">Hour of day (24h)</p>
+            </div>
 
-              {tagStats.length === 0 && (
-                <div className="text-center py-4 text-gray-500 dark:text-gray-400">
-                  No data available for the selected period
+            {/* Insights */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                <div className="flex items-center space-x-2 mb-2">
+                  <Clock className="w-5 h-5 text-orange-500" />
+                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">Peak Hours</span>
                 </div>
-              )}
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {peakHours.length > 0 ? peakHours.join(', ') : 'No activity yet'}
+                </p>
+              </div>
+
+              <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                <div className="flex items-center space-x-2 mb-2">
+                  <Calendar className="w-5 h-5 text-blue-500" />
+                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">Most Productive Days</span>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {productiveDays.length > 0 ? productiveDays.join(', ') : 'No activity yet'}
+                </p>
+              </div>
+
+              <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                <div className="flex items-center space-x-2 mb-2">
+                  <TrendingUp className="w-5 h-5 text-green-500" />
+                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">Progress</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  {trend === 'up' && <ArrowUp className="w-4 h-4 text-green-600" />}
+                  {trend === 'down' && <ArrowDown className="w-4 h-4 text-red-600" />}
+                  {trend === 'neutral' && <Minus className="w-4 h-4 text-gray-600" />}
+                  <span className={`text-sm font-medium ${
+                    trend === 'up' ? 'text-green-600' : trend === 'down' ? 'text-red-600' : 'text-gray-600'
+                  }`}>
+                    {trendPercentage}% vs previous period
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Task Statistics Table */}
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Task Statistics</h3>
+              
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200 dark:border-gray-700">
+                      <th className="text-left py-2 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">Category</th>
+                      <th className="text-right py-2 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">Tasks</th>
+                      <th className="text-right py-2 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">Completed</th>
+                      <th className="text-right py-2 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">Sessions</th>
+                      <th className="text-right py-2 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">Time</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {tagStats.map((stat) => (
+                      <tr key={stat.tagId} className="border-b border-gray-100 dark:border-gray-800">
+                        <td className="py-3 px-4">
+                          <div className="flex items-center space-x-2">
+                            <div 
+                              className="w-3 h-3 rounded-full"
+                              style={{ backgroundColor: stat.tagColor }}
+                            />
+                            <span className="text-sm text-gray-900 dark:text-gray-100">{stat.tagName}</span>
+                          </div>
+                        </td>
+                        <td className="text-right py-3 px-4 text-sm text-gray-600 dark:text-gray-400">
+                          {stat.totalTasks}
+                        </td>
+                        <td className="text-right py-3 px-4 text-sm text-gray-600 dark:text-gray-400">
+                          {stat.completedTasks}
+                        </td>
+                        <td className="text-right py-3 px-4 text-sm text-gray-600 dark:text-gray-400">
+                          {stat.sessions}
+                        </td>
+                        <td className="text-right py-3 px-4 text-sm font-medium text-gray-900 dark:text-gray-100">
+                          {formatTime(stat.totalTime)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
+        )}
 
-          {/* Time Distribution */}
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Hourly Distribution</h2>
-            
-            <div className="h-48 flex items-end space-x-1">
-              {timeDistribution.map((dist) => {
-                const height = maxDistributionTime > 0 ? (dist.time / maxDistributionTime) * 100 : 0;
-                const isActive = dist.time > 0;
-                return (
-                  <div
-                    key={dist.hour}
-                    className="flex-1 flex flex-col items-center"
-                  >
-                    <div className="w-full relative flex-1 flex items-end">
-                      <div
-                        className={`w-full rounded-t ${
-                          isActive 
-                            ? 'bg-gradient-to-t from-green-500 to-green-400' 
-                            : 'bg-gray-200 dark:bg-gray-700'
-                        }`}
-                        style={{ height: `${height}%`, minHeight: isActive ? '4px' : '1px' }}
-                      />
-                    </div>
-                    {dist.hour % 3 === 0 && (
-                      <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        {dist.hour}
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-2">Hour of day (24h)</p>
-          </div>
-        </div>
-
-        {/* Insights */}
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-            <div className="flex items-center space-x-2 mb-2">
-              <Clock className="w-5 h-5 text-orange-500" />
-              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">Peak Hours</span>
-            </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              {peakHours.length > 0 ? peakHours.join(', ') : 'No activity yet'}
-            </p>
-          </div>
-
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-            <div className="flex items-center space-x-2 mb-2">
-              <Calendar className="w-5 h-5 text-blue-500" />
-              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">Most Productive Days</span>
-            </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              {productiveDays.length > 0 ? productiveDays.join(', ') : 'No activity yet'}
-            </p>
-          </div>
-
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-            <div className="flex items-center space-x-2 mb-2">
-              <TrendingUp className="w-5 h-5 text-green-500" />
-              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">Focus Sessions</span>
-            </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              {totalSessions} sessions completed
-            </p>
-          </div>
-        </div>
-
-        {/* Task Statistics by Category */}
-        <div className="mt-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Task Statistics</h2>
-          
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200 dark:border-gray-700">
-                  <th className="text-left py-2 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">Category</th>
-                  <th className="text-right py-2 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">Tasks</th>
-                  <th className="text-right py-2 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">Completed</th>
-                  <th className="text-right py-2 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">Sessions</th>
-                  <th className="text-right py-2 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">Time</th>
-                </tr>
-              </thead>
-              <tbody>
-                {tagStats.map((stat) => (
-                  <tr key={stat.tagId} className="border-b border-gray-100 dark:border-gray-800">
-                    <td className="py-3 px-4">
-                      <div className="flex items-center space-x-2">
-                        <div 
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: stat.tagColor }}
-                        />
-                        <span className="text-sm text-gray-900 dark:text-gray-100">{stat.tagName}</span>
-                      </div>
-                    </td>
-                    <td className="text-right py-3 px-4 text-sm text-gray-600 dark:text-gray-400">
-                      {stat.totalTasks}
-                    </td>
-                    <td className="text-right py-3 px-4 text-sm text-gray-600 dark:text-gray-400">
-                      {stat.completedTasks}
-                    </td>
-                    <td className="text-right py-3 px-4 text-sm text-gray-600 dark:text-gray-400">
-                      {stat.sessions}
-                    </td>
-                    <td className="text-right py-3 px-4 text-sm font-medium text-gray-900 dark:text-gray-100">
-                      {formatTime(stat.totalTime)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
         </div>
       </div>
     </div>
