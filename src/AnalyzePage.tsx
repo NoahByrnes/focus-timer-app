@@ -187,74 +187,73 @@ const AnalyzePage = ({ timeRange = 'week' }: AnalyzePageProps) => {
     return 'bg-green-700 dark:bg-green-500'; // Dark green
   };
 
-  // Generate contribution grid data organized by months
+  // Generate contribution grid data like GitHub
   const generateContributionGrid = () => {
     const today = new Date();
-    const oneYearAgo = new Date(today);
-    oneYearAgo.setFullYear(today.getFullYear() - 1);
-    oneYearAgo.setDate(1); // Start from first of the month
+    const todayStr = today.toISOString().split('T')[0];
     
-    const months = [];
-    const currentMonth = new Date(oneYearAgo);
+    // Start from one year ago
+    const startDate = new Date(today);
+    startDate.setFullYear(today.getFullYear() - 1);
+    startDate.setDate(startDate.getDate() + 1); // Start from day after one year ago
     
-    // Generate 12 months of data
-    for (let i = 0; i < 12; i++) {
-      const monthStart = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
-      const monthEnd = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
-      
-      // Create grid for this month (max 6 weeks x 7 days)
-      const monthGrid = [];
-      
-      // Find the first Sunday of the calendar view for this month
-      const firstDay = new Date(monthStart);
-      const startOfWeek = firstDay.getDay(); // 0 = Sunday
-      firstDay.setDate(firstDay.getDate() - startOfWeek);
-      
-      // Generate 6 weeks to cover the entire month
-      for (let week = 0; week < 6; week++) {
-        const weekData = [];
-        for (let day = 0; day < 7; day++) {
-          const currentDate = new Date(firstDay);
-          currentDate.setDate(firstDay.getDate() + (week * 7) + day);
-          
-          // Only include dates within the month and not in the future
-          if (currentDate >= monthStart && currentDate <= monthEnd && currentDate <= today) {
-            const dateKey = currentDate.toISOString().split('T')[0];
-            const studyTime = dailyData.get(dateKey) || 0;
-            weekData.push({
-              date: currentDate,
-              dateKey,
-              studyTime,
-              colorClass: getColorIntensity(studyTime),
-              isCurrentMonth: true
-            });
-          } else if (currentDate <= today) {
-            // Outside current month but not future
-            weekData.push({
-              date: currentDate,
-              dateKey: currentDate.toISOString().split('T')[0],
-              studyTime: 0,
-              colorClass: 'bg-transparent',
-              isCurrentMonth: false
-            });
-          } else {
-            weekData.push(null); // Future dates
-          }
-        }
-        monthGrid.push(weekData);
-      }
-      
-      months.push({
-        month: monthStart,
-        monthName: monthStart.toLocaleDateString('en-US', { month: 'short' }),
-        grid: monthGrid
-      });
-      
-      // Move to next month
-      currentMonth.setMonth(currentMonth.getMonth() + 1);
+    // Adjust to start from Sunday
+    const startDay = startDate.getDay();
+    if (startDay !== 0) {
+      startDate.setDate(startDate.getDate() - startDay);
     }
     
-    return months;
+    // Generate weeks array (52 weeks + current partial week)
+    const weeks = [];
+    const monthLabels = new Map(); // Track where each month starts
+    
+    let currentDate = new Date(startDate);
+    let weekIndex = 0;
+    
+    while (currentDate <= today || weekIndex < 52) {
+      const week = [];
+      
+      for (let dayOfWeek = 0; dayOfWeek < 7; dayOfWeek++) {
+        const dateStr = currentDate.toISOString().split('T')[0];
+        const date = new Date(currentDate);
+        
+        // Track month labels (first week of each month)
+        if (date.getDate() <= 7 && dayOfWeek === 0) {
+          monthLabels.set(weekIndex, date.toLocaleDateString('en-US', { month: 'short' }));
+        }
+        
+        if (currentDate <= today) {
+          const studyTime = dailyData.get(dateStr) || 0;
+          week.push({
+            date: date,
+            dateKey: dateStr,
+            studyTime: studyTime,
+            colorClass: getColorIntensity(studyTime),
+            isToday: dateStr === todayStr,
+            isFuture: false
+          });
+        } else {
+          week.push({
+            date: date,
+            dateKey: dateStr,
+            studyTime: 0,
+            colorClass: 'bg-gray-100 dark:bg-gray-800',
+            isToday: false,
+            isFuture: true
+          });
+        }
+        
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+      
+      weeks.push(week);
+      weekIndex++;
+      
+      // Stop after we've covered today
+      if (currentDate > today && weekIndex >= 52) break;
+    }
+    
+    return { weeks, monthLabels };
   };
 
   // Calculate trend (compare to previous period)
@@ -385,34 +384,56 @@ const AnalyzePage = ({ timeRange = 'week' }: AnalyzePageProps) => {
               </div>
 
               <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
-                <div className="flex space-x-2 sm:space-x-4 min-w-max">
-                  {generateContributionGrid().map((monthData, monthIndex) => {
-                    // Calculate monthly total
-                    const monthTotal = monthData.grid.flat()
-                      .filter(day => day && day.isCurrentMonth)
-                      .reduce((total, day) => total + (day?.studyTime || 0), 0);
-
+                <div className="min-w-max">
+                  {(() => {
+                    const { weeks, monthLabels } = generateContributionGrid();
+                    
                     return (
-                      <div key={monthIndex} className="flex flex-col items-center min-w-[80px]">
-                        {/* Month label */}
-                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
-                          {monthData.monthName}
+                      <div className="relative">
+                        {/* Month labels */}
+                        <div className="flex mb-2 pl-8 relative h-4">
+                          {Array.from(monthLabels.entries()).map(([weekIndex, monthName]) => (
+                            <div 
+                              key={weekIndex}
+                              className="absolute text-xs text-gray-600 dark:text-gray-400"
+                              style={{ 
+                                left: `${weekIndex * 16}px`
+                              }}
+                            >
+                              {monthName}
+                            </div>
+                          ))}
                         </div>
                         
-                        {/* Days grid for this month */}
-                        <div className="flex space-x-1 mb-3">
-                          {monthData.grid[0] && monthData.grid[0].map((_, weekIndex) => (
-                            <div key={weekIndex} className="flex flex-col space-y-1">
-                              {monthData.grid.map((week, dayIndex) => {
-                                const day = week[weekIndex];
-                                return (
+                        {/* Days of week labels and grid */}
+                        <div className="flex gap-1">
+                          {/* Day labels */}
+                          <div className="flex flex-col gap-1 pr-2 text-xs text-gray-600 dark:text-gray-400">
+                            <div className="h-3"></div>
+                            <div className="h-3 flex items-center">Mon</div>
+                            <div className="h-3"></div>
+                            <div className="h-3 flex items-center">Wed</div>
+                            <div className="h-3"></div>
+                            <div className="h-3 flex items-center">Fri</div>
+                            <div className="h-3"></div>
+                          </div>
+                          
+                          {/* Weeks grid */}
+                          <div className="flex gap-1">
+                            {weeks.map((week, weekIndex) => (
+                              <div key={weekIndex} className="flex flex-col gap-1">
+                                {week.map((day, dayIndex) => (
                                   <div
                                     key={dayIndex}
-                                    className={`w-4 h-4 rounded-sm cursor-pointer transition-all hover:scale-110 ${
-                                      day && day.isCurrentMonth ? day.colorClass : 'bg-gray-100 dark:bg-gray-800'
-                                    }`}
+                                    className={`w-3 h-3 rounded-sm transition-all ${
+                                      day.isFuture 
+                                        ? 'bg-transparent' 
+                                        : day.isToday
+                                        ? `${day.colorClass} ring-1 ring-offset-1 ring-gray-400 dark:ring-gray-500`
+                                        : day.colorClass
+                                    } ${!day.isFuture ? 'cursor-pointer hover:scale-125' : ''}`}
                                     onMouseEnter={(e) => {
-                                      if (day && day.isCurrentMonth) {
+                                      if (!day.isFuture) {
                                         const rect = e.currentTarget.getBoundingClientRect();
                                         setHoveredDay({
                                           date: day.date,
@@ -424,19 +445,14 @@ const AnalyzePage = ({ timeRange = 'week' }: AnalyzePageProps) => {
                                     }}
                                     onMouseLeave={() => setHoveredDay(null)}
                                   />
-                                );
-                              })}
-                            </div>
-                          ))}
-                        </div>
-
-                        {/* Monthly total */}
-                        <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
-                          {monthTotal > 0 ? formatTime(monthTotal) : '0h'}
+                                ))}
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     );
-                  })}
+                  })()}
                 </div>
               </div>
               
