@@ -985,7 +985,7 @@ const FocusPage = () => {
 
       {/* Start Focus Session Button */}
       {!isRunning && !isBreakTime && (
-        timerMode === 'stopwatch' || timerMode === 'flowtime' ? elapsedTime === 0 : timeLeft === getCurrentConfig().workTime
+        timerMode === 'stopwatch' || timerMode === 'flowtime' ? elapsedTime === 0 : timeLeft === modeDurations[timerMode].work * 60
       ) && (
         <button
           onClick={startTimer}
@@ -1002,7 +1002,7 @@ const FocusPage = () => {
 
       {/* Control Buttons for when timer is running or paused */}
       {(isRunning || (!isRunning && (
-        (timerMode === 'stopwatch' || timerMode === 'flowtime' ? elapsedTime > 0 : timeLeft !== getCurrentConfig().workTime) || isBreakTime
+        (timerMode === 'stopwatch' || timerMode === 'flowtime' ? elapsedTime > 0 : timeLeft !== modeDurations[timerMode].work * 60) || isBreakTime
       ))) && (
         <div className="flex items-center space-x-3 sm:space-x-4 mb-8 sm:mb-12">
           <button
