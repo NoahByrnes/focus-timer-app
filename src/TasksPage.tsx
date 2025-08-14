@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { Plus, Check, Trash2, Clock, Target, Zap } from 'lucide-react';
 import { useTodos } from './context/TodoContext';
 import { TagSelector } from './components/TagSelector';
+import { useTheme } from './context/ThemeContext';
 import BackgroundGradient from './components/BackgroundGradient';
 
 const TasksPage = () => {
+  const { gradientStyle } = useTheme();
   const { todos, tags, loading, addTodo, toggleTodo, deleteTodo } = useTodos();
   const [newTodo, setNewTodo] = useState('');
   const [newTodoTagId, setNewTodoTagId] = useState<string>('');
@@ -108,7 +110,7 @@ const TasksPage = () => {
   return (
     <div className="flex-1 flex flex-col relative">
       {/* Unified background gradient */}
-      <BackgroundGradient />
+      <BackgroundGradient style={gradientStyle} />
       {/* Scrollable Content */}
       <div className="flex-1 overflow-auto">
         <div className="max-w-4xl mx-auto p-6 lg:p-8">

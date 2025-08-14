@@ -14,11 +14,12 @@ import BackgroundGradient from './components/BackgroundGradient';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
+  const { gradientStyle } = useTheme();
 
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center relative">
-        <BackgroundGradient />
+        <BackgroundGradient style={gradientStyle} />
         <div className="animate-pulse-soft relative z-10">
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-r from-ios-blue to-ios-blue-light shadow-glow animate-bounce-gentle"></div>
         </div>
@@ -175,6 +176,7 @@ const MainAppContent = ({
   signOut, 
   isDarkMode, 
   toggleDarkMode, 
+  gradientStyle,
   isAnalyzeOpen, 
   setIsAnalyzeOpen, 
   analyzeTimeRange, 
@@ -186,7 +188,7 @@ const MainAppContent = ({
   return (
     <div className="flex h-screen relative overflow-hidden">
       {/* Unified background gradient */}
-      <BackgroundGradient />
+      <BackgroundGradient style={gradientStyle} />
       {/* Mobile Menu Button */}
       <button
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -499,7 +501,7 @@ const MainAppContent = ({
 const AppWithRouter = () => {
   const location = useLocation();
   const { user, signOut } = useAuth();
-  const { isDarkMode, toggleDarkMode } = useTheme();
+  const { isDarkMode, toggleDarkMode, gradientStyle } = useTheme();
   const [isAnalyzeOpen, setIsAnalyzeOpen] = useState(false);
   const [analyzeTimeRange, setAnalyzeTimeRange] = useState<'day' | 'week' | 'month' | 'year'>('week');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -526,6 +528,7 @@ const AppWithRouter = () => {
       signOut={handleSignOut}
       isDarkMode={isDarkMode}
       toggleDarkMode={toggleDarkMode}
+      gradientStyle={gradientStyle}
       isAnalyzeOpen={isAnalyzeOpen}
       setIsAnalyzeOpen={setIsAnalyzeOpen}
       analyzeTimeRange={analyzeTimeRange}
