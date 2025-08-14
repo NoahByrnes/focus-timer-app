@@ -105,12 +105,9 @@ const TasksPage = () => {
   }
 
   return (
-    <div className="flex-1 flex flex-col relative">
-      {/* Fixed Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white via-gray-50 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-950" />
-      
+    <div className="flex-1 flex flex-col bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-blue-950">
       {/* Scrollable Content */}
-      <div className="relative flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto">
         <div className="max-w-4xl mx-auto p-6 lg:p-8">
           
           {/* Header with Stats */}
