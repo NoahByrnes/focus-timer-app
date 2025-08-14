@@ -174,7 +174,7 @@ const TasksPage = () => {
               />
               <button
                 onClick={handleAddTodo}
-                className="p-3 bg-accent hover:opacity-90 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95"
+                className="p-3 bg-accent hover:opacity-90 text-white rounded-xl shadow-lg hover:shadow-xl  hover:scale-105 active:scale-95"
               >
                 <Plus className="w-6 h-6" />
               </button>
@@ -216,7 +216,7 @@ const TasksPage = () => {
                   return (
                     <div
                       key={todo.id}
-                      className={`group flex items-center gap-4 p-4 backdrop-blur-xl border rounded-2xl hover:shadow-md transition-all duration-200 ${
+                      className={`group flex items-center gap-4 p-4 backdrop-blur-xl border rounded-2xl hover:shadow-md  ${
                         todo.completed 
                           ? 'bg-gray-50/60 dark:bg-gray-800/60 border-gray-200/30 dark:border-gray-700/20' 
                           : 'bg-white/60 dark:bg-gray-900/60 border-gray-200/50 dark:border-gray-700/30'
@@ -224,7 +224,7 @@ const TasksPage = () => {
                     >
                       <button
                         onClick={() => toggleTodo(todo.id)}
-                        className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-200 ${
+                        className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0  ${
                           todo.completed
                             ? 'bg-green-500 dark:bg-green-600'
                             : 'border-2 border-gray-300 dark:border-gray-600 hover:border-green-500 dark:hover:border-green-400'
@@ -257,7 +257,7 @@ const TasksPage = () => {
                       </div>
                       <button
                         onClick={() => deleteTodo(todo.id)}
-                        className="opacity-0 group-hover:opacity-100 p-2 text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-all duration-200"
+                        className="opacity-0 group-hover:opacity-100 p-2 text-gray-400 hover:text-red-500 dark:hover:text-red-400 "
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>

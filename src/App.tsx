@@ -41,13 +41,13 @@ const NavItem = ({ to, icon: Icon, label, onClick }: { to: string; icon: any; la
     <NavLink
       to={to}
       onClick={onClick}
-      className={`flex items-center space-x-4 px-4 py-4 w-full text-left rounded-2xl transition-all duration-300 group ${
+      className={`flex items-center space-x-4 px-4 py-4 w-full text-left rounded-2xl  group ${
         isActive
           ? 'bg-accent-light text-accent shadow-sm backdrop-blur-sm'
           : 'text-gray-700 dark:text-gray-300 hover:bg-white/40 dark:hover:bg-gray-800/40 hover:backdrop-blur-sm hover:shadow-sm'
       }`}
     >
-      <div className={`p-2 rounded-xl transition-all duration-300 ${
+      <div className={`p-2 rounded-xl  ${
         isActive 
           ? 'bg-accent-medium' 
           : 'bg-gray-100/50 dark:bg-gray-700/50 group-hover:bg-gray-200/70 dark:group-hover:bg-gray-600/70'
@@ -69,14 +69,14 @@ const AnalyzeDropdownButton = ({ isAnalyzeOpen, setIsAnalyzeOpen }: {
   return (
     <button
       onClick={() => setIsAnalyzeOpen(!isAnalyzeOpen)}
-      className={`flex items-center justify-between px-4 py-4 w-full text-left rounded-2xl transition-all duration-300 group ${
+      className={`flex items-center justify-between px-4 py-4 w-full text-left rounded-2xl  group ${
         isActive
           ? 'bg-accent-light text-accent shadow-sm backdrop-blur-sm'
           : 'text-gray-700 dark:text-gray-300 hover:bg-white/40 dark:hover:bg-gray-800/40 hover:backdrop-blur-sm hover:shadow-sm'
       }`}
     >
       <div className="flex items-center space-x-4">
-        <div className={`p-2 rounded-xl transition-all duration-300 ${
+        <div className={`p-2 rounded-xl  ${
           isActive
             ? 'bg-accent-medium' 
             : 'bg-gray-100/50 dark:bg-gray-700/50 group-hover:bg-gray-200/70 dark:group-hover:bg-gray-600/70'
@@ -85,7 +85,7 @@ const AnalyzeDropdownButton = ({ isAnalyzeOpen, setIsAnalyzeOpen }: {
         </div>
         <span className="text-callout font-medium">Analyze</span>
       </div>
-      <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${
+      <ChevronDown className={`w-4 h-4 ${
         isAnalyzeOpen ? 'rotate-0' : '-rotate-90'
       }`} />
     </button>
@@ -110,7 +110,7 @@ const AnalyzeSubMenuItem = ({ range, label, setAnalyzeTimeRange, onClick }: {
         setAnalyzeTimeRange(range);
         onClick?.();
       }}
-      className={`block px-4 py-2 text-subhead rounded-xl transition-all duration-300 ${
+      className={`block px-4 py-2 text-subhead rounded-xl  ${
         isActive
           ? 'bg-accent-light text-accent'
           : 'text-gray-600 dark:text-gray-400 hover:bg-white/30 dark:hover:bg-gray-800/30'
@@ -141,20 +141,20 @@ const MobileTabBar = () => {
               <NavLink
                 key={item.path}
                 to={item.path}
-                className={`flex flex-col items-center space-y-1 px-3 py-2 rounded-xl transition-all duration-300 ${
+                className={`flex flex-col items-center space-y-1 px-3 py-2 rounded-xl  ${
                   isActive 
                     ? 'bg-accent-light' 
                     : 'hover:bg-gray-100/50 dark:hover:bg-gray-800/50'
                 }`}
               >
                 <Icon 
-                  className={`w-6 h-6 transition-all duration-300 ${
+                  className={`w-6 h-6  ${
                     isActive 
                       ? 'text-accent scale-110' 
                       : 'text-ios-gray dark:text-gray-400'
                   }`} 
                 />
-                <span className={`text-xs font-medium transition-all duration-300 ${
+                <span className={`text-xs font-medium  ${
                   isActive 
                     ? 'text-accent' 
                     : 'text-ios-gray dark:text-gray-400'
@@ -190,7 +190,7 @@ const MainAppContent = ({
       {/* Mobile Menu Button */}
       <button
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        className="lg:hidden fixed top-8 left-6 z-50 p-3 backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 rounded-2xl border border-white/20 dark:border-gray-700/30 shadow-lg transition-all duration-300 hover:scale-105 active:scale-95"
+        className="lg:hidden fixed top-8 left-6 z-50 p-3 backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 rounded-2xl border border-white/20 dark:border-gray-700/30 shadow-lg  hover:scale-105 active:scale-95"
       >
         {isMobileMenuOpen ? (
           <X className="w-6 h-6 text-gray-900 dark:text-gray-100" />
@@ -274,9 +274,9 @@ const MainAppContent = ({
             <div className="space-y-2">
               <button
                 onClick={toggleDarkMode}
-                className="flex items-center space-x-4 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-white/40 dark:hover:bg-gray-800/40 rounded-2xl w-full text-left transition-all duration-300 group"
+                className="flex items-center space-x-4 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-white/40 dark:hover:bg-gray-800/40 rounded-2xl w-full text-left  group"
               >
-                <div className="p-2 rounded-xl bg-gray-100/50 dark:bg-gray-700/50 group-hover:bg-gray-200/70 dark:group-hover:bg-gray-600/70 transition-all duration-300">
+                <div className="p-2 rounded-xl bg-gray-100/50 dark:bg-gray-700/50 group-hover:bg-gray-200/70 dark:group-hover:bg-gray-600/70 ">
                   {isDarkMode ? (
                     <Sun className="w-5 h-5" />
                   ) : (
@@ -288,7 +288,7 @@ const MainAppContent = ({
               <NavLink
                 to="/settings"
                 className={({ isActive }) =>
-                  `flex items-center space-x-4 px-4 py-3 rounded-2xl w-full text-left transition-all duration-300 group ${
+                  `flex items-center space-x-4 px-4 py-3 rounded-2xl w-full text-left  group ${
                     isActive
                       ? 'bg-accent-light text-accent shadow-sm backdrop-blur-sm'
                       : 'text-gray-700 dark:text-gray-300 hover:bg-white/40 dark:hover:bg-gray-800/40'
@@ -297,7 +297,7 @@ const MainAppContent = ({
               >
                 {({ isActive }) => (
                   <>
-                    <div className={`p-2 rounded-xl transition-all duration-300 ${
+                    <div className={`p-2 rounded-xl  ${
                       isActive 
                         ? 'bg-accent-medium' 
                         : 'bg-gray-100/50 dark:bg-gray-700/50 group-hover:bg-gray-200/70 dark:group-hover:bg-gray-600/70'
@@ -311,7 +311,7 @@ const MainAppContent = ({
               <NavLink
                 to="/profile"
                 className={({ isActive }) =>
-                  `flex items-center space-x-4 px-4 py-3 rounded-2xl w-full text-left transition-all duration-300 group ${
+                  `flex items-center space-x-4 px-4 py-3 rounded-2xl w-full text-left  group ${
                     isActive
                       ? 'bg-accent-light text-accent shadow-sm backdrop-blur-sm'
                       : 'text-gray-700 dark:text-gray-300 hover:bg-white/40 dark:hover:bg-gray-800/40'
@@ -320,7 +320,7 @@ const MainAppContent = ({
               >
                 {({ isActive }) => (
                   <>
-                    <div className={`p-2 rounded-xl transition-all duration-300 ${
+                    <div className={`p-2 rounded-xl  ${
                       isActive 
                         ? 'bg-accent-medium' 
                         : 'bg-gray-100/50 dark:bg-gray-700/50 group-hover:bg-gray-200/70 dark:group-hover:bg-gray-600/70'
@@ -333,9 +333,9 @@ const MainAppContent = ({
               </NavLink>
               <button 
                 onClick={signOut}
-                className="flex items-center space-x-4 px-4 py-3 text-ios-red dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-2xl w-full text-left transition-all duration-300 group"
+                className="flex items-center space-x-4 px-4 py-3 text-ios-red dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-2xl w-full text-left  group"
               >
-                <div className="p-2 rounded-xl bg-red-100/50 dark:bg-red-950/50 group-hover:bg-red-200/70 dark:group-hover:bg-red-900/70 transition-all duration-300">
+                <div className="p-2 rounded-xl bg-red-100/50 dark:bg-red-950/50 group-hover:bg-red-200/70 dark:group-hover:bg-red-900/70 ">
                   <LogOut className="w-5 h-5" />
                 </div>
                 <span className="text-callout font-medium">Log out</span>
@@ -427,9 +427,9 @@ const MainAppContent = ({
                 <div className="space-y-2">
                   <button
                     onClick={toggleDarkMode}
-                    className="flex items-center space-x-4 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-white/40 dark:hover:bg-gray-800/40 rounded-2xl w-full text-left transition-all duration-300 group"
+                    className="flex items-center space-x-4 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-white/40 dark:hover:bg-gray-800/40 rounded-2xl w-full text-left  group"
                   >
-                    <div className="p-2 rounded-xl bg-gray-100/50 dark:bg-gray-700/50 group-hover:bg-gray-200/70 dark:group-hover:bg-gray-600/70 transition-all duration-300">
+                    <div className="p-2 rounded-xl bg-gray-100/50 dark:bg-gray-700/50 group-hover:bg-gray-200/70 dark:group-hover:bg-gray-600/70 ">
                       {isDarkMode ? (
                         <Sun className="w-5 h-5" />
                       ) : (
@@ -442,9 +442,9 @@ const MainAppContent = ({
                   <NavItem to="/profile" icon={User} label="Profile" onClick={() => setIsMobileMenuOpen(false)} />
                   <button 
                     onClick={signOut}
-                    className="flex items-center space-x-4 px-4 py-3 text-ios-red dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-2xl w-full text-left transition-all duration-300 group"
+                    className="flex items-center space-x-4 px-4 py-3 text-ios-red dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-2xl w-full text-left  group"
                   >
-                    <div className="p-2 rounded-xl bg-red-100/50 dark:bg-red-950/50 group-hover:bg-red-200/70 dark:group-hover:bg-red-900/70 transition-all duration-300">
+                    <div className="p-2 rounded-xl bg-red-100/50 dark:bg-red-950/50 group-hover:bg-red-200/70 dark:group-hover:bg-red-900/70 ">
                       <LogOut className="w-5 h-5" />
                     </div>
                     <span className="text-callout font-medium">Log out</span>

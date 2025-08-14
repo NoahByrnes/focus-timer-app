@@ -440,7 +440,7 @@ const FocusPage = () => {
             <p className="text-callout font-medium flex-1">{notificationMessage}</p>
             <button 
               onClick={() => setShowNotification(false)}
-              className="p-2 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200"
+              className="p-2 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 rounded-xl "
             >
               <X className="w-4 h-4" />
             </button>
@@ -455,7 +455,7 @@ const FocusPage = () => {
             <h3 className="text-title-3 font-bold text-gray-900 dark:text-gray-100">Today's Stats</h3>
             <button 
               onClick={() => setShowStatsPanel(false)}
-              className="p-2 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200"
+              className="p-2 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 rounded-xl "
             >
               <X className="w-5 h-5 text-gray-500" />
             </button>
@@ -950,7 +950,7 @@ const FocusPage = () => {
                 strokeDasharray={2 * Math.PI * 85}
                 strokeDashoffset={2 * Math.PI * 85 * (1 - progress / 100)}
                 strokeLinecap="round"
-                className="transition-all duration-1000 ease-out drop-shadow-lg"
+                className=" drop-shadow-lg"
               />
               <defs>
                 <linearGradient id="timerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -982,13 +982,13 @@ const FocusPage = () => {
                 )}
                 {timerMode !== 'stopwatch' && timerMode !== 'flowtime' && (
                   <div className="flex items-center justify-center space-x-2 pt-2">
-                    <div className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                    <div className={`w-2 h-2 rounded-full  ${
                       currentIteration === 1 ? 'bg-ios-blue' : 'bg-gray-300 dark:bg-gray-600'
                     }`}></div>
                     {iterations > 1 && (
                       <>
                         {Array.from({ length: iterations - 1 }, (_, i) => (
-                          <div key={i + 2} className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                          <div key={i + 2} className={`w-2 h-2 rounded-full  ${
                             currentIteration >= i + 2 ? 'bg-ios-blue' : 'bg-gray-300 dark:bg-gray-600'
                           }`}></div>
                         ))}
@@ -1008,7 +1008,7 @@ const FocusPage = () => {
       ) && (
         <button
           onClick={startTimer}
-          className="mb-12 sm:mb-16 px-8 sm:px-12 py-4 sm:py-5 bg-gradient-to-r from-ios-blue to-ios-blue-light hover:from-ios-blue/90 hover:to-ios-blue-light/90 active:scale-95 text-white rounded-3xl font-semibold flex items-center space-x-3 text-body shadow-xl border border-white/20 backdrop-blur-sm transition-all duration-300 hover:shadow-glow"
+          className="mb-12 sm:mb-16 px-8 sm:px-12 py-4 sm:py-5 bg-gradient-to-r from-ios-blue to-ios-blue-light hover:from-ios-blue/90 hover:to-ios-blue-light/90 active:scale-95 text-white rounded-3xl font-semibold flex items-center space-x-3 text-body shadow-xl border border-white/20 backdrop-blur-sm  hover:shadow-glow"
         >
           <div className="p-1 bg-white/20 rounded-xl">
             <Play className="w-5 h-5" />
@@ -1028,7 +1028,7 @@ const FocusPage = () => {
         <div className="flex items-center justify-center space-x-6 sm:space-x-8 mb-12 sm:mb-16">
           <button
             onClick={isRunning ? pauseTimer : startTimer}
-            className="flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-r from-ios-green to-emerald-500 hover:from-ios-green/90 hover:to-emerald-500/90 active:scale-90 text-white rounded-full shadow-2xl border border-white/20 backdrop-blur-sm transition-all duration-300 hover:shadow-glow"
+            className="flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-r from-ios-green to-emerald-500 hover:from-ios-green/90 hover:to-emerald-500/90 active:scale-90 text-white rounded-full shadow-2xl border border-white/20 backdrop-blur-sm  hover:shadow-glow"
           >
             {isRunning ? (
               <Pause className="w-6 h-6 sm:w-8 sm:h-8" />
@@ -1039,7 +1039,7 @@ const FocusPage = () => {
           
           <button 
             onClick={() => setShowSoundMenu(true)}
-            className="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 backdrop-blur-xl bg-white/60 dark:bg-gray-900/60 hover:bg-white/80 dark:hover:bg-gray-800/80 border border-white/30 dark:border-gray-700/30 rounded-2xl shadow-lg transition-all duration-300 active:scale-95"
+            className="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 backdrop-blur-xl bg-white/60 dark:bg-gray-900/60 hover:bg-white/80 dark:hover:bg-gray-800/80 border border-white/30 dark:border-gray-700/30 rounded-2xl shadow-lg  active:scale-95"
           >
             {currentSound !== 'none' ? (
               <Headphones className="w-5 h-5 sm:w-6 sm:h-6 text-ios-green" />
@@ -1051,7 +1051,7 @@ const FocusPage = () => {
           {!isRunning && (
             <button
               onClick={resetTimer}
-              className="px-6 py-3 backdrop-blur-xl bg-white/60 dark:bg-gray-900/60 hover:bg-white/80 dark:hover:bg-gray-800/80 border border-white/30 dark:border-gray-700/30 text-gray-700 dark:text-gray-300 rounded-2xl shadow-lg text-callout font-medium transition-all duration-300 active:scale-95"
+              className="px-6 py-3 backdrop-blur-xl bg-white/60 dark:bg-gray-900/60 hover:bg-white/80 dark:hover:bg-gray-800/80 border border-white/30 dark:border-gray-700/30 text-gray-700 dark:text-gray-300 rounded-2xl shadow-lg text-callout font-medium  active:scale-95"
             >
               Reset
             </button>
@@ -1071,7 +1071,7 @@ const FocusPage = () => {
                   setIsRunning(true);
                 }
               }}
-              className="px-6 py-3 bg-gradient-to-r from-ios-red to-red-500 hover:from-ios-red/90 hover:to-red-500/90 text-white rounded-2xl shadow-lg text-callout font-medium transition-all duration-300 active:scale-95 border border-white/20"
+              className="px-6 py-3 bg-gradient-to-r from-ios-red to-red-500 hover:from-ios-red/90 hover:to-red-500/90 text-white rounded-2xl shadow-lg text-callout font-medium  active:scale-95 border border-white/20"
             >
               End Flow
             </button>
@@ -1103,14 +1103,14 @@ const FocusPage = () => {
           <div className="flex items-center space-x-2 sm:space-x-3">
             <button 
               onClick={() => setShowConfigureMenu(true)}
-              className="px-4 sm:px-5 py-2 sm:py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg flex items-center space-x-1.5 sm:space-x-2 transition-all duration-200 hover:scale-105 active:scale-95"
+              className="px-4 sm:px-5 py-2 sm:py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg flex items-center space-x-1.5 sm:space-x-2  hover:scale-105 active:scale-95"
             >
               <Settings className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               <span className="text-xs sm:text-sm font-medium">Configure</span>
             </button>
             <button 
               onClick={() => setShowLogMenu(true)}
-              className="px-4 sm:px-5 py-2 sm:py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg flex items-center space-x-1.5 sm:space-x-2 transition-all duration-200 hover:scale-105 active:scale-95"
+              className="px-4 sm:px-5 py-2 sm:py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg flex items-center space-x-1.5 sm:space-x-2  hover:scale-105 active:scale-95"
             >
               <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               <span className="text-xs sm:text-sm font-medium">Log</span>

@@ -128,7 +128,7 @@ const PlanPage = () => {
           </div>
           <button
             onClick={() => setShowTagManager(!showTagManager)}
-            className="px-6 py-3 backdrop-blur-xl bg-white/60 dark:bg-gray-900/60 hover:bg-white/80 dark:hover:bg-gray-800/80 border border-white/30 dark:border-gray-700/30 text-gray-700 dark:text-gray-300 rounded-2xl shadow-lg flex items-center space-x-3 transition-all duration-300 active:scale-95"
+            className="px-6 py-3 backdrop-blur-xl bg-white/60 dark:bg-gray-900/60 hover:bg-white/80 dark:hover:bg-gray-800/80 border border-white/30 dark:border-gray-700/30 text-gray-700 dark:text-gray-300 rounded-2xl shadow-lg flex items-center space-x-3  active:scale-95"
           >
             <div className="p-1 bg-gray-100/50 dark:bg-gray-700/50 rounded-lg">
               <Settings className="w-4 h-4" />
@@ -159,7 +159,7 @@ const PlanPage = () => {
               />
               <button
                 onClick={handleAddTodo}
-                className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-ios-blue to-ios-blue-light hover:from-ios-blue/90 hover:to-ios-blue-light/90 text-white rounded-2xl shadow-lg transition-all duration-300 active:scale-95"
+                className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-ios-blue to-ios-blue-light hover:from-ios-blue/90 hover:to-ios-blue-light/90 text-white rounded-2xl shadow-lg  active:scale-95"
               >
                 <Plus className="w-6 h-6" />
               </button>
@@ -173,7 +173,7 @@ const PlanPage = () => {
             <div className="flex items-center space-x-1">
               <button
                 onClick={() => setFilter('all')}
-                className={`px-6 py-2 text-callout font-medium rounded-xl transition-all duration-300 ${
+                className={`px-6 py-2 text-callout font-medium rounded-xl  ${
                   filter === 'all' 
                     ? 'bg-ios-blue text-white shadow-md' 
                     : 'text-ios-gray dark:text-gray-400 hover:bg-white/50 dark:hover:bg-gray-800/50'
@@ -183,7 +183,7 @@ const PlanPage = () => {
               </button>
               <button
                 onClick={() => setFilter('active')}
-                className={`px-6 py-2 text-callout font-medium rounded-xl transition-all duration-300 ${
+                className={`px-6 py-2 text-callout font-medium rounded-xl  ${
                   filter === 'active' 
                     ? 'bg-ios-blue text-white shadow-md' 
                     : 'text-ios-gray dark:text-gray-400 hover:bg-white/50 dark:hover:bg-gray-800/50'
@@ -193,7 +193,7 @@ const PlanPage = () => {
               </button>
               <button
                 onClick={() => setFilter('completed')}
-                className={`px-6 py-2 text-callout font-medium rounded-xl transition-all duration-300 ${
+                className={`px-6 py-2 text-callout font-medium rounded-xl  ${
                   filter === 'completed' 
                     ? 'bg-ios-blue text-white shadow-md' 
                     : 'text-ios-gray dark:text-gray-400 hover:bg-white/50 dark:hover:bg-gray-800/50'

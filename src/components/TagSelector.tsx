@@ -61,7 +61,7 @@ export const TagSelector = ({ tags, value, onChange, placeholder = "No tag", dis
             </>
           )}
         </div>
-        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-4 h-4 text-gray-400 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {/* Dropdown */}
