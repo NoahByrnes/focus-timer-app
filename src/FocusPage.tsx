@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Play, Pause, Volume2, Settings, FileText, Timer, X, Plus, Minus, Zap, Target, TrendingUp, Coffee, Wind, Trees, Waves, Cloud, Headphones, VolumeX, Bell, BellOff, Keyboard, Flame } from 'lucide-react';
 import { useTodos } from './context/TodoContext';
 
@@ -116,14 +116,14 @@ const FocusPage = () => {
   
 
   // Get current timer configuration
-  const getCurrentConfig = () => {
+  const getCurrentConfig = useCallback(() => {
     const durations = modeDurations[timerMode];
     return {
       ...timerConfigs[timerMode],
       workTime: durations.work * 60,
       breakTime: durations.break * 60,
     };
-  };
+  }, [timerMode, modeDurations]);
 
   // Timer logic
   useEffect(() => {
@@ -161,38 +161,6 @@ const FocusPage = () => {
     };
   }, [isRunning, timeLeft, timerMode, isBreakTime]);
   
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      // Don't trigger if user is typing in an input
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      
-      switch(e.key.toLowerCase()) {
-        case ' ':
-          e.preventDefault();
-          if (isRunning) pauseTimer(); else startTimer();
-          break;
-        case 'r':
-          if (e.ctrlKey || e.metaKey) {
-            e.preventDefault();
-            resetTimer();
-          }
-          break;
-        case 's':
-          if (e.ctrlKey || e.metaKey) {
-            e.preventDefault();
-            setShowStatsPanel(!showStatsPanel);
-          }
-          break;
-        case '?':
-          setShowKeyboardShortcuts(!showKeyboardShortcuts);
-          break;
-      }
-    };
-    
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [isRunning, showStatsPanel, showKeyboardShortcuts]);
   
   // Handle sound playback - simplified version
   useEffect(() => {
@@ -218,25 +186,40 @@ const FocusPage = () => {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const startTimer = () => {
+  const saveSession = useCallback(async () => {
+    if (selectedTodoId && sessionStartTime.current && sessionTimeElapsed.current > 0) {
+      const session = {
+        id: Date.now().toString(),
+        startTime: sessionStartTime.current,
+        endTime: new Date(),
+        duration: sessionTimeElapsed.current
+      };
+      await addSessionToTodo(selectedTodoId, session);
+      sessionStartTime.current = null;
+      sessionTimeElapsed.current = 0;
+    }
+  }, [selectedTodoId, addSessionToTodo]);
+
+  const startTimer = useCallback(() => {
     sessionStartTime.current = new Date();
     sessionTimeElapsed.current = 0;
     
     // Handle starting with break if configured
-    if ((timerMode === 'reverse-pomodoro' || startWithBreak) && !isBreakTime && timeLeft === getCurrentConfig().workTime) {
+    const config = getCurrentConfig();
+    if ((timerMode === 'reverse-pomodoro' || startWithBreak) && !isBreakTime && timeLeft === config.workTime) {
       setIsBreakTime(true);
-      setTimeLeft(getCurrentConfig().breakTime);
+      setTimeLeft(config.breakTime);
     }
     
     setIsRunning(true);
-  };
+  }, [timerMode, startWithBreak, isBreakTime, timeLeft, getCurrentConfig]);
 
-  const pauseTimer = () => {
+  const pauseTimer = useCallback(() => {
     setIsRunning(false);
     if (timerMode !== 'flowtime' && timerMode !== 'stopwatch') {
       saveSession();
     }
-  };
+  }, [timerMode, saveSession]);
 
   const handleTimerComplete = () => {
     setIsRunning(false);
@@ -341,7 +324,7 @@ const FocusPage = () => {
     }
   }, []);
 
-  const resetTimer = () => {
+  const resetTimer = useCallback(() => {
     setIsRunning(false);
     setIsBreakTime(false);
     setElapsedTime(0);
@@ -355,7 +338,7 @@ const FocusPage = () => {
     } else {
       setTimeLeft(config.workTime);
     }
-  };
+  }, [timerMode, getCurrentConfig]);
 
   const handleModeChange = (mode: TimerMode) => {
     setTimerMode(mode);
@@ -392,19 +375,38 @@ const FocusPage = () => {
     }
   };
 
-  const saveSession = async () => {
-    if (selectedTodoId && sessionStartTime.current && sessionTimeElapsed.current > 0) {
-      const session = {
-        id: Date.now().toString(),
-        startTime: sessionStartTime.current,
-        endTime: new Date(),
-        duration: sessionTimeElapsed.current
-      };
-      await addSessionToTodo(selectedTodoId, session);
-      sessionStartTime.current = null;
-      sessionTimeElapsed.current = 0;
-    }
-  };
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      // Don't trigger if user is typing in an input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      
+      switch(e.key.toLowerCase()) {
+        case ' ':
+          e.preventDefault();
+          if (isRunning) pauseTimer(); else startTimer();
+          break;
+        case 'r':
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            resetTimer();
+          }
+          break;
+        case 's':
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            setShowStatsPanel(prev => !prev);
+          }
+          break;
+        case '?':
+          setShowKeyboardShortcuts(prev => !prev);
+          break;
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [isRunning, pauseTimer, startTimer, resetTimer]);
 
   // Calculate progress based on mode
   const getProgress = () => {
