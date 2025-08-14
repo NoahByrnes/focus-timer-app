@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Bell, Clock, Volume2, Palette, Shield, Save, Check } from 'lucide-react';
 import { useTheme } from './context/ThemeContext';
+import BackgroundGradient from './components/BackgroundGradient';
 
 const SettingsPage = () => {
   const { isDarkMode, toggleDarkMode } = useTheme();
@@ -57,8 +58,10 @@ const SettingsPage = () => {
   ];
 
   return (
-    <div className="flex-1 flex flex-col p-8 bg-white dark:bg-gray-900">
-      <div className="max-w-4xl w-full mx-auto">
+    <div className="flex-1 flex flex-col p-8 relative">
+      {/* Unified background gradient */}
+      <BackgroundGradient />
+      <div className="max-w-4xl w-full mx-auto relative z-10">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Settings</h1>

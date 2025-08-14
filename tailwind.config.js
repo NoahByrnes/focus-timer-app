@@ -67,6 +67,8 @@ export default {
         'scale-in': 'scaleIn 0.2s ease-out',
         'bounce-gentle': 'bounceGentle 0.6s ease-out',
         'pulse-soft': 'pulseSoft 2s ease-in-out infinite',
+        'pulse-slow': 'pulseSlow 4s ease-in-out infinite',
+        'pulse-slower': 'pulseSlower 6s ease-in-out infinite',
       },
       keyframes: {
         fadeIn: {
@@ -97,6 +99,14 @@ export default {
         pulseSoft: {
           '0%, 100%': { opacity: '1' },
           '50%': { opacity: '0.7' },
+        },
+        pulseSlow: {
+          '0%, 100%': { opacity: '0.03' },
+          '50%': { opacity: '0.06' },
+        },
+        pulseSlower: {
+          '0%, 100%': { opacity: '0.02' },
+          '50%': { opacity: '0.04' },
         },
       },
       spacing: {

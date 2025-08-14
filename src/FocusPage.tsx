@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Play, Pause, Volume2, Settings, FileText, Timer, X, Plus, Minus, Zap, Target, TrendingUp, Coffee, Wind, Trees, Waves, Cloud, Headphones, VolumeX, Bell, BellOff, Keyboard, Flame } from 'lucide-react';
 import { useTodos } from './context/TodoContext';
+import BackgroundGradient from './components/BackgroundGradient';
 
 type TimerMode = 'pomodoro' | '52-17' | 'flowtime' | '90-20' | '2-minute' | 'reverse-pomodoro' | 'stopwatch';
 
@@ -426,8 +427,8 @@ const FocusPage = () => {
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-8 lg:p-12 relative overflow-hidden">
-      {/* Background gradient animation */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-white/5 to-purple-50/20 dark:from-blue-950/10 dark:via-gray-900/5 dark:to-purple-950/10 pointer-events-none animate-pulse-soft" />
+      {/* Unified background gradient */}
+      <BackgroundGradient />
       
       {/* Apple-style notification */}
       {showNotification && (

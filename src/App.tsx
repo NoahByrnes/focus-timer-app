@@ -10,14 +10,16 @@ import { TodoProvider } from './context/TodoContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { Auth } from './components/Auth';
+import BackgroundGradient from './components/BackgroundGradient';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-blue-950">
-        <div className="animate-pulse-soft">
+      <div className="flex h-screen items-center justify-center relative">
+        <BackgroundGradient />
+        <div className="animate-pulse-soft relative z-10">
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-r from-ios-blue to-ios-blue-light shadow-glow animate-bounce-gentle"></div>
         </div>
       </div>
@@ -182,7 +184,9 @@ const MainAppContent = ({
 }: any) => {
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-blue-950 overflow-hidden">
+    <div className="flex h-screen relative overflow-hidden">
+      {/* Unified background gradient */}
+      <BackgroundGradient />
       {/* Mobile Menu Button */}
       <button
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}

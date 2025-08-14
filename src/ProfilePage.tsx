@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { User, Mail, Award, Target, Clock, Calendar, TrendingUp, Edit2, Save, X } from 'lucide-react';
 import { useAuth } from './context/AuthContext';
 import { useTodos } from './context/TodoContext';
+import BackgroundGradient from './components/BackgroundGradient';
 
 const ProfilePage = () => {
   const { user } = useAuth();
@@ -117,8 +118,10 @@ const ProfilePage = () => {
   const earnedAchievements = achievements.filter(a => a.earned);
 
   return (
-    <div className="flex-1 flex flex-col p-8 bg-white dark:bg-gray-900">
-      <div className="max-w-4xl w-full mx-auto">
+    <div className="flex-1 flex flex-col p-8 relative">
+      {/* Unified background gradient */}
+      <BackgroundGradient />
+      <div className="max-w-4xl w-full mx-auto relative z-10">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Profile</h1>
