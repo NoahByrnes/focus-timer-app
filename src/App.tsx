@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, NavLink, Navigate, useLocation } from 'react-router-dom';
-import { Target, Calendar, BarChart3, FileText, Settings, LogOut, User, Moon, Sun, ChevronDown, Menu, X } from 'lucide-react';
+import { Target, BarChart3, Settings, LogOut, User, Moon, Sun, ChevronDown, Menu, X, CheckSquare } from 'lucide-react';
 import FocusPage from './FocusPage';
-import PlanPage from './PlanPage';
-import ReviewPage from './ReviewPage';
+import TasksPage from './TasksPage';
 import AnalyzePage from './AnalyzePage';
 import SettingsPage from './SettingsPage';
 import ProfilePage from './ProfilePage';
@@ -124,9 +123,8 @@ const MobileTabBar = () => {
   const location = useLocation();
   
   const tabItems = [
-    { path: '/plan', icon: Calendar, label: 'Plan' },
+    { path: '/tasks', icon: CheckSquare, label: 'Tasks' },
     { path: '/', icon: Target, label: 'Focus' },
-    { path: '/review', icon: FileText, label: 'Review' },
     { path: '/analyze', icon: BarChart3, label: 'Analyze' },
   ];
 
@@ -220,13 +218,10 @@ const MainApp = () => {
           <nav className="flex-1 p-6">
             <ul className="space-y-2">
               <li>
-                <NavItem to="/plan" icon={Calendar} label="Plan" />
+                <NavItem to="/tasks" icon={CheckSquare} label="Tasks" />
               </li>
               <li>
                 <NavItem to="/" icon={Target} label="Focus" />
-              </li>
-              <li>
-                <NavItem to="/review" icon={FileText} label="Review" />
               </li>
               <li className="relative">
                 <AnalyzeDropdownButton 
@@ -372,13 +367,10 @@ const MainApp = () => {
               <nav className="flex-1 p-6 overflow-y-auto">
                 <ul className="space-y-2">
                   <li>
-                    <NavItem to="/plan" icon={Calendar} label="Plan" onClick={() => setIsMobileMenuOpen(false)} />
+                    <NavItem to="/tasks" icon={CheckSquare} label="Tasks" onClick={() => setIsMobileMenuOpen(false)} />
                   </li>
                   <li>
                     <NavItem to="/" icon={Target} label="Focus" onClick={() => setIsMobileMenuOpen(false)} />
-                  </li>
-                  <li>
-                    <NavItem to="/review" icon={FileText} label="Review" onClick={() => setIsMobileMenuOpen(false)} />
                   </li>
                   <li className="relative">
                     <AnalyzeDropdownButton 
@@ -471,14 +463,9 @@ const MainApp = () => {
                 <FocusPage />
               </ProtectedRoute>
             } />
-            <Route path="/plan" element={
+            <Route path="/tasks" element={
               <ProtectedRoute>
-                <PlanPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/review" element={
-              <ProtectedRoute>
-                <ReviewPage />
+                <TasksPage />
               </ProtectedRoute>
             } />
             <Route path="/analyze" element={
