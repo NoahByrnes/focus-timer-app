@@ -83,7 +83,9 @@ const FocusPage = () => {
   const [showBreathingGuide, setShowBreathingGuide] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
-  const [focusQuote, setFocusQuote] = useState({ text: "Deep work requires deep commitment.", author: "Cal Newport" });
+  const [showNotification, setShowNotification] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState('');
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   
   // Configurable durations for each mode (in minutes)
   const [modeDurations, setModeDurations] = useState<Record<TimerMode, { work: number; break: number }>>({
@@ -113,15 +115,16 @@ const FocusPage = () => {
     { id: 'lofi', name: 'Lo-Fi Beats', icon: Headphones },
   ];
   
-  // Motivational quotes
-  const quotes = [
-    { text: "Deep work requires deep commitment.", author: "Cal Newport" },
-    { text: "Focus is a matter of deciding what things you're not going to do.", author: "John Carmack" },
-    { text: "The successful warrior is the average person with laser-like focus.", author: "Bruce Lee" },
-    { text: "Where focus goes, energy flows.", author: "Tony Robbins" },
-    { text: "Starve your distractions, feed your focus.", author: "Unknown" },
-    { text: "The key to success is to focus on goals, not obstacles.", author: "Unknown" },
-  ];
+  // Ambient sound URLs (using free sound effects)
+  const soundUrls: Record<string, string> = {
+    'none': '',
+    'rain': 'https://www.soundjay.com/misc/rain-03.mp3',
+    'forest': 'https://www.soundjay.com/nature/forest-1.mp3', 
+    'waves': 'https://www.soundjay.com/nature/ocean-wave-2.mp3',
+    'whitenoise': 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQQAAACA',
+    'cafe': 'https://www.soundjay.com/ambience/cafe-1.mp3',
+    'lofi': 'https://www.soundjay.com/misc/bell-ringing-05.mp3',
+  };
 
   // Get current timer configuration
   const getCurrentConfig = () => {
@@ -202,14 +205,42 @@ const FocusPage = () => {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [isRunning, showStatsPanel, showKeyboardShortcuts]);
   
-  // Rotate quotes
+  // Handle sound playback
   useEffect(() => {
-    const interval = setInterval(() => {
-      setFocusQuote(quotes[Math.floor(Math.random() * quotes.length)]);
-    }, 30000); // Change every 30 seconds
+    if (currentSound !== 'none' && !isSoundMuted) {
+      // Create audio element if needed
+      if (!audioRef.current) {
+        audioRef.current = new Audio();
+        audioRef.current.loop = true;
+      }
+      
+      // For white noise, generate it programmatically
+      if (currentSound === 'whitenoise') {
+        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const bufferSize = 4096;
+        const whiteNoise = audioContext.createScriptProcessor(bufferSize, 1, 1);
+        whiteNoise.onaudioprocess = (e) => {
+          const output = e.outputBuffer.getChannelData(0);
+          for (let i = 0; i < bufferSize; i++) {
+            output[i] = Math.random() * 2 - 1;
+          }
+        };
+        whiteNoise.connect(audioContext.destination);
+      } else if (soundUrls[currentSound]) {
+        audioRef.current.src = soundUrls[currentSound];
+        audioRef.current.volume = soundVolume / 100;
+        audioRef.current.play().catch(() => {});
+      }
+    } else if (audioRef.current) {
+      audioRef.current.pause();
+    }
     
-    return () => clearInterval(interval);
-  }, []);
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+    };
+  }, [currentSound, isSoundMuted, soundVolume]);
 
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -245,14 +276,12 @@ const FocusPage = () => {
   const handleTimerComplete = () => {
     setIsRunning(false);
     
-    // Play notification sound
-    if (notificationsEnabled) {
-      playNotificationSound();
-    }
-    
-    // Update streak
+    // Trigger notification with appropriate message
     if (!isBreakTime) {
       setCurrentStreak(prev => prev + 1);
+      triggerNotification(`Great work! You completed a ${timerMode} session. Time for a break! 🎉`);
+    } else {
+      triggerNotification('Break time is over. Ready to focus again? 💪');
     }
     
     const config = getCurrentConfig();
@@ -297,11 +326,62 @@ const FocusPage = () => {
     }
   };
   
-  const playNotificationSound = () => {
-    const audio = new Audio('/notification.mp3');
-    audio.volume = 0.5;
-    audio.play().catch(() => {});
+  const triggerNotification = (message: string) => {
+    if (!notificationsEnabled) return;
+    
+    // Visual notification
+    setNotificationMessage(message);
+    setShowNotification(true);
+    
+    // Play custom notification sound using Web Audio API
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    // Create a pleasant notification melody
+    const notes = [523.25, 659.25, 783.99, 659.25]; // C, E, G, E
+    let noteIndex = 0;
+    
+    const playNote = () => {
+      if (noteIndex < notes.length) {
+        oscillator.frequency.setValueAtTime(notes[noteIndex], audioContext.currentTime);
+        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+        noteIndex++;
+        setTimeout(playNote, 200);
+      } else {
+        oscillator.stop();
+      }
+    };
+    
+    oscillator.type = 'sine';
+    oscillator.start();
+    playNote();
+    
+    // Browser notification if permitted
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification('Focus Timer', {
+        body: message,
+        icon: '/favicon.ico',
+        tag: 'focus-timer'
+      });
+    }
+    
+    // Auto-hide visual notification after 5 seconds
+    setTimeout(() => {
+      setShowNotification(false);
+    }, 5000);
   };
+  
+  // Request notification permission on mount
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }, []);
 
   const resetTimer = () => {
     setIsRunning(false);
@@ -395,56 +475,90 @@ const FocusPage = () => {
       {/* Background gradient animation */}
       <div className="absolute inset-0 bg-gradient-to-br from-green-50 via-transparent to-blue-50 dark:from-green-950/20 dark:to-blue-950/20 opacity-50" />
       
+      {/* Custom Visual Notification */}
+      {showNotification && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 animate-bounce">
+          <div className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-6 py-4 rounded-lg shadow-2xl flex items-center space-x-3">
+            <div className="animate-pulse">
+              <Bell className="w-6 h-6" />
+            </div>
+            <p className="font-medium">{notificationMessage}</p>
+            <button 
+              onClick={() => setShowNotification(false)}
+              className="ml-4 hover:bg-white/20 rounded p-1"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+      
       {/* Floating Stats Panel */}
       {showStatsPanel && (
-        <div className="absolute top-4 right-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 w-64 z-10">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100">Today's Progress</h3>
-            <button onClick={() => setShowStatsPanel(false)}>
-              <X className="w-4 h-4 text-gray-400" />
+        <div className="absolute top-20 right-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl p-5 w-72 z-10">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Today's Stats</h3>
+            <button 
+              onClick={() => setShowStatsPanel(false)}
+              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            >
+              <X className="w-4 h-4 text-gray-500" />
             </button>
           </div>
           
-          <div className="space-y-3">
-            <div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400">Daily Goal</span>
-                <span className="font-medium">{dailyProgress}/{dailyGoal} min</span>
+          <div className="space-y-4">
+            <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Daily Progress</span>
+                <span className="text-sm font-bold text-gray-900 dark:text-gray-100">
+                  {dailyProgress}/{dailyGoal} min
+                </span>
               </div>
-              <div className="mt-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+              <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                 <div 
-                  className="h-full bg-gradient-to-r from-green-500 to-green-600 transition-all"
+                  className="h-full bg-gradient-to-r from-green-400 to-green-600 transition-all duration-500 ease-out"
                   style={{ width: `${Math.min((dailyProgress / dailyGoal) * 100, 100)}%` }}
                 />
               </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                {Math.max(0, dailyGoal - dailyProgress)} minutes remaining
+              </p>
             </div>
             
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Flame className="w-4 h-4 text-orange-500" />
-                <span className="text-sm text-gray-600 dark:text-gray-400">Streak</span>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-3">
+                <div className="flex items-center justify-between">
+                  <Flame className="w-5 h-5 text-orange-500" />
+                  <span className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                    {currentStreak}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Session Streak</p>
               </div>
-              <span className="font-bold text-orange-500">{currentStreak} 🔥</span>
+              
+              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
+                <div className="flex items-center justify-between">
+                  <Zap className="w-5 h-5 text-blue-500" />
+                  <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                    {Math.round((dailyProgress / dailyGoal) * 100)}%
+                  </span>
+                </div>
+                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Focus Score</p>
+              </div>
             </div>
             
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Zap className="w-4 h-4 text-yellow-500" />
-                <span className="text-sm text-gray-600 dark:text-gray-400">Focus Score</span>
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-600 dark:text-gray-400">Sessions Today</span>
+                <span className="font-medium text-gray-900 dark:text-gray-100">
+                  {Math.floor(dailyProgress / 25)} completed
+                </span>
               </div>
-              <span className="font-bold text-yellow-500">{Math.round((dailyProgress / dailyGoal) * 100)}%</span>
             </div>
           </div>
         </div>
       )}
       
-      {/* Motivational Quote */}
-      <div className="absolute top-4 left-4 max-w-sm">
-        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur rounded-lg p-3 shadow-sm">
-          <p className="text-sm text-gray-600 dark:text-gray-400 italic">"{focusQuote.text}"</p>
-          <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">— {focusQuote.author}</p>
-        </div>
-      </div>
 
       {/* Configure Menu Modal */}
       {showConfigureMenu && (
