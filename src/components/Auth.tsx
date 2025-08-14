@@ -43,18 +43,21 @@ export const Auth = () => {
         const { error } = await signIn(email, password);
         if (error) {
           setError(error.message);
+          setIsLoading(false);
         }
+        // Don't set loading to false on success - let the auth state change handle navigation
       } else {
         const { error } = await signUp(email, password);
         if (error) {
           setError(error.message);
+          setIsLoading(false);
         } else {
           setSuccessMessage('Account created! Please check your email to verify your account.');
+          setIsLoading(false);
         }
       }
     } catch (err) {
       setError('An unexpected error occurred');
-    } finally {
       setIsLoading(false);
     }
   };
