@@ -105,86 +105,109 @@ const PlanPage = () => {
   }
 
   return (
-    <div className="flex-1 flex flex-col p-4 sm:p-6 lg:p-8 bg-white dark:bg-gray-900">
-      <div className="max-w-4xl w-full mx-auto">
-        {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Todo List</h1>
-            <p className="text-gray-600 dark:text-gray-400">Plan your day and track your tasks</p>
+    <div className="flex-1 flex flex-col p-6 sm:p-8 lg:p-12 relative overflow-hidden">
+      {/* Background gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/30 via-white/5 to-purple-50/20 dark:from-indigo-950/10 dark:via-gray-900/5 dark:to-purple-950/10 pointer-events-none" />
+      
+      <div className="max-w-5xl w-full mx-auto relative z-10">
+        {/* Apple-style Header */}
+        <div className="mb-12 flex items-center justify-between">
+          <div className="space-y-2">
+            <h1 className="text-title-large font-bold text-gray-900 dark:text-gray-100">Plans</h1>
+            <p className="text-body text-ios-gray dark:text-gray-400">Organize your tasks and focus sessions</p>
+            <div className="flex items-center space-x-6 mt-4">
+              <div className="text-center">
+                <div className="text-title-2 font-bold text-gray-900 dark:text-gray-100">{activeTodos.length}</div>
+                <div className="text-caption text-ios-gray dark:text-gray-400">Active</div>
+              </div>
+              <div className="text-center">
+                <div className="text-title-2 font-bold text-ios-green">{completedTodos.length}</div>
+                <div className="text-caption text-ios-gray dark:text-gray-400">Completed</div>
+              </div>
+            </div>
           </div>
           <button
             onClick={() => setShowTagManager(!showTagManager)}
-            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg  flex items-center space-x-2"
+            className="px-6 py-3 backdrop-blur-xl bg-white/60 dark:bg-gray-900/60 hover:bg-white/80 dark:hover:bg-gray-800/80 border border-white/30 dark:border-gray-700/30 text-gray-700 dark:text-gray-300 rounded-2xl shadow-lg flex items-center space-x-3 transition-all duration-300 active:scale-95"
           >
-            <Settings className="w-4 h-4" />
-            <span className="text-sm font-medium">Manage Tags</span>
+            <div className="p-1 bg-gray-100/50 dark:bg-gray-700/50 rounded-lg">
+              <Settings className="w-4 h-4" />
+            </div>
+            <span className="text-callout font-medium">Manage Tags</span>
           </button>
         </div>
 
-        {/* Add Todo */}
-        <div className="mb-6">
-          <div className="flex items-center space-x-2">
-            <div className="w-40">
-              <TagSelector
-                tags={tags}
-                value={newTodoTagId}
-                onChange={setNewTodoTagId}
-                placeholder="No tag"
+        {/* Apple-style Add Todo Card */}
+        <div className="mb-8">
+          <div className="backdrop-blur-xl bg-white/60 dark:bg-gray-900/60 border border-white/30 dark:border-gray-700/30 rounded-3xl shadow-lg p-6">
+            <div className="flex items-center space-x-4">
+              <div className="w-48">
+                <TagSelector
+                  tags={tags}
+                  value={newTodoTagId}
+                  onChange={setNewTodoTagId}
+                  placeholder="No tag"
+                />
+              </div>
+              <input
+                type="text"
+                value={newTodo}
+                onChange={(e) => setNewTodo(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleAddTodo()}
+                placeholder="Add a new task..."
+                className="flex-1 px-6 py-4 backdrop-blur-sm bg-white/50 dark:bg-gray-800/50 border border-white/20 dark:border-gray-700/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-ios-blue/50 focus:border-ios-blue/50 text-body text-gray-900 dark:text-gray-100 placeholder-ios-gray dark:placeholder-gray-400"
               />
+              <button
+                onClick={handleAddTodo}
+                className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-ios-blue to-ios-blue-light hover:from-ios-blue/90 hover:to-ios-blue-light/90 text-white rounded-2xl shadow-lg transition-all duration-300 active:scale-95"
+              >
+                <Plus className="w-6 h-6" />
+              </button>
             </div>
-            <input
-              type="text"
-              value={newTodo}
-              onChange={(e) => setNewTodo(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleAddTodo()}
-              placeholder="Add a new task..."
-              className="flex-1 px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-gray-900 dark:text-gray-100"
-            />
-            <button
-              onClick={handleAddTodo}
-              className="p-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg "
-            >
-              <Plus className="w-5 h-5" />
-            </button>
           </div>
         </div>
 
-        {/* Filter Tabs */}
-        <div className="flex items-center space-x-4 mb-6 border-b border-gray-200 pb-4">
-          <button
-            onClick={() => setFilter('all')}
-            className={`px-1 text-sm font-medium  ${
-              filter === 'all' 
-                ? 'text-green-600 border-b-2 border-green-600' 
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            All
-          </button>
-          <button
-            onClick={() => setFilter('active')}
-            className={`px-1 text-sm font-medium  ${
-              filter === 'active' 
-                ? 'text-green-600 border-b-2 border-green-600' 
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            Active
-          </button>
-          <button
-            onClick={() => setFilter('completed')}
-            className={`px-1 text-sm font-medium  ${
-              filter === 'completed' 
-                ? 'text-green-600 border-b-2 border-green-600' 
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            Completed
-          </button>
-          <span className="ml-auto text-sm text-gray-500">
-            Count: {filteredTodos.length}
-          </span>
+        {/* Apple-style Filter Tabs */}
+        <div className="flex items-center justify-between mb-8">
+          <div className="backdrop-blur-xl bg-white/40 dark:bg-gray-900/40 border border-white/20 dark:border-gray-700/20 rounded-2xl p-2 shadow-sm">
+            <div className="flex items-center space-x-1">
+              <button
+                onClick={() => setFilter('all')}
+                className={`px-6 py-2 text-callout font-medium rounded-xl transition-all duration-300 ${
+                  filter === 'all' 
+                    ? 'bg-ios-blue text-white shadow-md' 
+                    : 'text-ios-gray dark:text-gray-400 hover:bg-white/50 dark:hover:bg-gray-800/50'
+                }`}
+              >
+                All
+              </button>
+              <button
+                onClick={() => setFilter('active')}
+                className={`px-6 py-2 text-callout font-medium rounded-xl transition-all duration-300 ${
+                  filter === 'active' 
+                    ? 'bg-ios-blue text-white shadow-md' 
+                    : 'text-ios-gray dark:text-gray-400 hover:bg-white/50 dark:hover:bg-gray-800/50'
+                }`}
+              >
+                Active
+              </button>
+              <button
+                onClick={() => setFilter('completed')}
+                className={`px-6 py-2 text-callout font-medium rounded-xl transition-all duration-300 ${
+                  filter === 'completed' 
+                    ? 'bg-ios-blue text-white shadow-md' 
+                    : 'text-ios-gray dark:text-gray-400 hover:bg-white/50 dark:hover:bg-gray-800/50'
+                }`}
+              >
+                Completed
+              </button>
+            </div>
+          </div>
+          <div className="backdrop-blur-xl bg-white/40 dark:bg-gray-900/40 border border-white/20 dark:border-gray-700/20 rounded-2xl px-4 py-2 shadow-sm">
+            <span className="text-subhead font-medium text-ios-gray dark:text-gray-400">
+              {filteredTodos.length} tasks
+            </span>
+          </div>
         </div>
 
         {/* Todo List */}

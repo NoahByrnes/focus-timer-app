@@ -425,21 +425,21 @@ const FocusPage = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 bg-white dark:bg-gray-900 relative overflow-hidden">
+    <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-8 lg:p-12 relative overflow-hidden">
       {/* Background gradient animation */}
-      <div className="absolute inset-0 bg-gradient-to-br from-green-50 via-transparent to-blue-50 dark:from-green-950/20 dark:to-blue-950/20 opacity-50 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-white/5 to-purple-50/20 dark:from-blue-950/10 dark:via-gray-900/5 dark:to-purple-950/10 pointer-events-none animate-pulse-soft" />
       
-      {/* Custom Visual Notification */}
+      {/* Apple-style notification */}
       {showNotification && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 animate-bounce">
-          <div className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-6 py-4 rounded-lg shadow-2xl flex items-center space-x-3">
-            <div className="animate-pulse">
-              <Bell className="w-6 h-6" />
+        <div className="fixed top-12 left-1/2 transform -translate-x-1/2 z-50 animate-slide-down">
+          <div className="backdrop-blur-2xl bg-white/90 dark:bg-gray-900/90 border border-white/20 dark:border-gray-700/20 text-gray-900 dark:text-gray-100 pl-6 pr-4 py-4 rounded-2xl shadow-xl flex items-center space-x-4 max-w-sm">
+            <div className="p-2 bg-ios-blue/10 dark:bg-ios-blue/20 rounded-xl">
+              <Bell className="w-5 h-5 text-ios-blue" />
             </div>
-            <p className="font-medium">{notificationMessage}</p>
+            <p className="text-callout font-medium flex-1">{notificationMessage}</p>
             <button 
               onClick={() => setShowNotification(false)}
-              className="ml-4 hover:bg-white/20 rounded p-1"
+              className="p-2 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200"
             >
               <X className="w-4 h-4" />
             </button>
@@ -447,64 +447,68 @@ const FocusPage = () => {
         </div>
       )}
       
-      {/* Floating Stats Panel */}
+      {/* Apple-style Stats Panel */}
       {showStatsPanel && (
-        <div className="absolute top-20 right-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl p-5 w-72 z-10">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Today's Stats</h3>
+        <div className="absolute top-24 right-6 backdrop-blur-2xl bg-white/80 dark:bg-gray-900/80 border border-white/20 dark:border-gray-700/20 rounded-3xl shadow-2xl p-6 w-80 z-10 animate-scale-in">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-title-3 font-bold text-gray-900 dark:text-gray-100">Today's Stats</h3>
             <button 
               onClick={() => setShowStatsPanel(false)}
-              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              className="p-2 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200"
             >
-              <X className="w-4 h-4 text-gray-500" />
+              <X className="w-5 h-5 text-gray-500" />
             </button>
           </div>
           
-          <div className="space-y-4">
-            <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Daily Progress</span>
-                <span className="text-sm font-bold text-gray-900 dark:text-gray-100">
+          <div className="space-y-5">
+            <div className="backdrop-blur-sm bg-white/40 dark:bg-gray-800/40 rounded-2xl p-4 border border-white/20 dark:border-gray-700/20">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-subhead font-medium text-gray-700 dark:text-gray-300">Daily Progress</span>
+                <span className="text-subhead font-bold text-gray-900 dark:text-gray-100">
                   {dailyProgress}/{dailyGoal} min
                 </span>
               </div>
-              <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+              <div className="h-2 bg-gray-200/50 dark:bg-gray-700/50 rounded-full overflow-hidden">
                 <div 
-                  className="h-full bg-gradient-to-r from-green-400 to-green-600 transition-all duration-500 ease-out"
+                  className="h-full bg-gradient-to-r from-ios-green to-emerald-500 transition-all duration-700 ease-out"
                   style={{ width: `${Math.min((dailyProgress / dailyGoal) * 100, 100)}%` }}
                 />
               </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              <p className="text-caption text-gray-500 dark:text-gray-400 mt-2">
                 {Math.max(0, dailyGoal - dailyProgress)} minutes remaining
               </p>
             </div>
             
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-3">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="backdrop-blur-sm bg-orange-50/60 dark:bg-orange-900/20 rounded-2xl p-4 border border-orange-200/30 dark:border-orange-700/20">
                 <div className="flex items-center justify-between">
-                  <Flame className="w-5 h-5 text-orange-500" />
-                  <span className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                  <div className="p-2 bg-ios-orange/10 dark:bg-ios-orange/20 rounded-xl">
+                    <Flame className="w-5 h-5 text-ios-orange" />
+                  </div>
+                  <span className="text-title-2 font-bold text-ios-orange">
                     {currentStreak}
                   </span>
                 </div>
-                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Session Streak</p>
+                <p className="text-caption text-gray-600 dark:text-gray-400 mt-2">Session Streak</p>
               </div>
               
-              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
+              <div className="backdrop-blur-sm bg-blue-50/60 dark:bg-blue-900/20 rounded-2xl p-4 border border-blue-200/30 dark:border-blue-700/20">
                 <div className="flex items-center justify-between">
-                  <Zap className="w-5 h-5 text-blue-500" />
-                  <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                  <div className="p-2 bg-ios-blue/10 dark:bg-ios-blue/20 rounded-xl">
+                    <Zap className="w-5 h-5 text-ios-blue" />
+                  </div>
+                  <span className="text-title-2 font-bold text-ios-blue">
                     {Math.round((dailyProgress / dailyGoal) * 100)}%
                   </span>
                 </div>
-                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Focus Score</p>
+                <p className="text-caption text-gray-600 dark:text-gray-400 mt-2">Focus Score</p>
               </div>
             </div>
             
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400">Sessions Today</span>
-                <span className="font-medium text-gray-900 dark:text-gray-100">
+            <div className="border-t border-gray-200/30 dark:border-gray-700/30 pt-4">
+              <div className="flex items-center justify-between">
+                <span className="text-subhead text-gray-600 dark:text-gray-400">Sessions Today</span>
+                <span className="text-subhead font-semibold text-gray-900 dark:text-gray-100">
                   {Math.floor(dailyProgress / 25)} completed
                 </span>
               </div>
@@ -913,62 +917,95 @@ const FocusPage = () => {
         )}
       </div>
 
-      {/* Timer Circle */}
-      <div className="relative mb-8 sm:mb-12 lg:mb-16">
-        <div className="w-60 h-60 sm:w-72 sm:h-72">
-          <svg className="w-full h-full transform -rotate-90" viewBox="0 0 200 200">
-            <circle
-              cx="100"
-              cy="100"
-              r="85"
-              stroke="#e5e7eb"
-              strokeWidth="6"
-              fill="transparent"
-            />
-            <circle
-              cx="100"
-              cy="100"
-              r="85"
-              stroke="#22c55e"
-              strokeWidth="6"
-              fill="transparent"
-              strokeDasharray={2 * Math.PI * 85}
-              strokeDashoffset={2 * Math.PI * 85 * (1 - progress / 100)}
-              strokeLinecap="round"
-              className="transition-all duration-1000 ease-in-out"
-            />
-          </svg>
+      {/* Apple-style Timer Display */}
+      <div className="relative mb-12 sm:mb-16 lg:mb-20">
+        <div className="relative">
+          {/* Glass morphism background */}
+          <div className="absolute inset-0 backdrop-blur-3xl bg-white/20 dark:bg-gray-900/20 rounded-full border border-white/30 dark:border-gray-700/30 shadow-2xl"></div>
           
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <p className="text-gray-600 dark:text-gray-400 text-base sm:text-lg mb-1 sm:mb-2 font-medium">
-              {isBreakTime ? 'Break Time' : (selectedTodo ? 'Focusing on' : 'Focus')}
-            </p>
-            {selectedTodo && !isBreakTime && (
-              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-1 sm:mb-2 max-w-[150px] sm:max-w-[200px] text-center truncate">
-                {selectedTodo.text}
-              </p>
-            )}
-            <p className="text-3xl sm:text-4xl lg:text-5xl font-light text-gray-900 dark:text-gray-100">
-              {getDisplayTime()}
-            </p>
-            {(timerMode === 'flowtime' || timerMode === 'stopwatch') && (
-              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1 sm:mt-2">
-                {timerMode === 'flowtime' ? 'Track your flow' : 'Elapsed time'}
-              </p>
-            )}
+          <div className="relative w-80 h-80 sm:w-96 sm:h-96 lg:w-[28rem] lg:h-[28rem] p-8">
+            <svg className="w-full h-full transform -rotate-90 absolute inset-0" viewBox="0 0 200 200">
+              <circle
+                cx="100"
+                cy="100"
+                r="85"
+                stroke="rgba(156, 163, 175, 0.2)"
+                strokeWidth="3"
+                fill="transparent"
+              />
+              <circle
+                cx="100"
+                cy="100"
+                r="85"
+                stroke="url(#timerGradient)"
+                strokeWidth="3"
+                fill="transparent"
+                strokeDasharray={2 * Math.PI * 85}
+                strokeDashoffset={2 * Math.PI * 85 * (1 - progress / 100)}
+                strokeLinecap="round"
+                className="transition-all duration-1000 ease-out drop-shadow-lg"
+              />
+              <defs>
+                <linearGradient id="timerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style={{stopColor: isBreakTime ? '#FF9500' : '#007AFF', stopOpacity: 1}} />
+                  <stop offset="100%" style={{stopColor: isBreakTime ? '#FF3B30' : '#5AC8FA', stopOpacity: 1}} />
+                </linearGradient>
+              </defs>
+            </svg>
+            
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-8">
+              <div className="text-center space-y-2">
+                <p className="text-subhead font-semibold text-gray-700 dark:text-gray-300">
+                  {isBreakTime ? 'Break Time' : (selectedTodo ? 'Focusing on' : 'Focus Session')}
+                </p>
+                {selectedTodo && !isBreakTime && (
+                  <p className="text-footnote text-ios-gray dark:text-gray-400 max-w-60 text-center line-clamp-2 leading-relaxed">
+                    {selectedTodo.text}
+                  </p>
+                )}
+                <div className="py-4">
+                  <p className="text-6xl sm:text-7xl lg:text-8xl font-thin text-gray-900 dark:text-gray-100 tracking-tight">
+                    {getDisplayTime()}
+                  </p>
+                </div>
+                {(timerMode === 'flowtime' || timerMode === 'stopwatch') && (
+                  <p className="text-caption text-ios-gray dark:text-gray-400 font-medium">
+                    {timerMode === 'flowtime' ? 'Track your natural flow' : 'Counting up'}
+                  </p>
+                )}
+                {timerMode !== 'stopwatch' && timerMode !== 'flowtime' && (
+                  <div className="flex items-center justify-center space-x-2 pt-2">
+                    <div className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                      currentIteration === 1 ? 'bg-ios-blue' : 'bg-gray-300 dark:bg-gray-600'
+                    }`}></div>
+                    {iterations > 1 && (
+                      <>
+                        {Array.from({ length: iterations - 1 }, (_, i) => (
+                          <div key={i + 2} className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                            currentIteration >= i + 2 ? 'bg-ios-blue' : 'bg-gray-300 dark:bg-gray-600'
+                          }`}></div>
+                        ))}
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Start Focus Session Button */}
+      {/* Apple-style Start Button */}
       {!isRunning && !isBreakTime && (
         timerMode === 'stopwatch' || timerMode === 'flowtime' ? elapsedTime === 0 : timeLeft === modeDurations[timerMode].work * 60
       ) && (
         <button
           onClick={startTimer}
-          className="mb-8 sm:mb-12 px-6 sm:px-8 py-2.5 sm:py-3 bg-green-500 hover:bg-green-600 text-white rounded-full font-medium flex items-center space-x-2 text-sm sm:text-base"
+          className="mb-12 sm:mb-16 px-8 sm:px-12 py-4 sm:py-5 bg-gradient-to-r from-ios-blue to-ios-blue-light hover:from-ios-blue/90 hover:to-ios-blue-light/90 active:scale-95 text-white rounded-3xl font-semibold flex items-center space-x-3 text-body shadow-xl border border-white/20 backdrop-blur-sm transition-all duration-300 hover:shadow-glow"
         >
-          <Play className="w-4 h-4" />
+          <div className="p-1 bg-white/20 rounded-xl">
+            <Play className="w-5 h-5" />
+          </div>
           <span>
             {timerMode === 'stopwatch' ? 'Start Stopwatch' : 
              timerMode === 'flowtime' ? 'Start Flow Session' :
@@ -977,37 +1014,37 @@ const FocusPage = () => {
         </button>
       )}
 
-      {/* Control Buttons for when timer is running or paused */}
+      {/* Apple-style Control Buttons */}
       {(isRunning || (!isRunning && (
         (timerMode === 'stopwatch' || timerMode === 'flowtime' ? elapsedTime > 0 : timeLeft !== modeDurations[timerMode].work * 60) || isBreakTime
       ))) && (
-        <div className="flex items-center space-x-3 sm:space-x-4 mb-8 sm:mb-12">
+        <div className="flex items-center justify-center space-x-6 sm:space-x-8 mb-12 sm:mb-16">
           <button
             onClick={isRunning ? pauseTimer : startTimer}
-            className="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 bg-green-500 hover:bg-green-600 text-white rounded-full"
+            className="flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-r from-ios-green to-emerald-500 hover:from-ios-green/90 hover:to-emerald-500/90 active:scale-90 text-white rounded-full shadow-2xl border border-white/20 backdrop-blur-sm transition-all duration-300 hover:shadow-glow"
           >
             {isRunning ? (
-              <Pause className="w-4 h-4 sm:w-5 sm:h-5" />
+              <Pause className="w-6 h-6 sm:w-8 sm:h-8" />
             ) : (
-              <Play className="w-4 h-4 sm:w-5 sm:h-5 ml-0.5" />
+              <Play className="w-6 h-6 sm:w-8 sm:h-8 ml-0.5" />
             )}
           </button>
           
           <button 
             onClick={() => setShowSoundMenu(true)}
-            className="p-2 sm:p-3 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+            className="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 backdrop-blur-xl bg-white/60 dark:bg-gray-900/60 hover:bg-white/80 dark:hover:bg-gray-800/80 border border-white/30 dark:border-gray-700/30 rounded-2xl shadow-lg transition-all duration-300 active:scale-95"
           >
             {currentSound !== 'none' ? (
-              <Headphones className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
+              <Headphones className="w-5 h-5 sm:w-6 sm:h-6 text-ios-green" />
             ) : (
-              <Volume2 className="w-4 h-4 sm:w-5 sm:h-5" />
+              <Volume2 className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600 dark:text-gray-400" />
             )}
           </button>
 
           {!isRunning && (
             <button
               onClick={resetTimer}
-              className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-xs sm:text-sm"
+              className="px-6 py-3 backdrop-blur-xl bg-white/60 dark:bg-gray-900/60 hover:bg-white/80 dark:hover:bg-gray-800/80 border border-white/30 dark:border-gray-700/30 text-gray-700 dark:text-gray-300 rounded-2xl shadow-lg text-callout font-medium transition-all duration-300 active:scale-95"
             >
               Reset
             </button>
@@ -1027,7 +1064,7 @@ const FocusPage = () => {
                   setIsRunning(true);
                 }
               }}
-              className="px-3 sm:px-4 py-1.5 sm:py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-xs sm:text-sm"
+              className="px-6 py-3 bg-gradient-to-r from-ios-red to-red-500 hover:from-ios-red/90 hover:to-red-500/90 text-white rounded-2xl shadow-lg text-callout font-medium transition-all duration-300 active:scale-95 border border-white/20"
             >
               End Flow
             </button>
