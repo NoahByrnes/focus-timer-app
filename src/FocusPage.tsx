@@ -675,34 +675,59 @@ const FocusPage = () => {
               {/* Session Preview - Hide for stopwatch */}
               {timerMode !== 'stopwatch' && (
                 <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
-                <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Session Preview</div>
-                <div className="flex items-center space-x-1 overflow-x-auto">
-                  {Array.from({ length: iterations }).map((_, i) => {
-                    const showBreakFirst = startWithBreak && i === 0;
-                    const showBreakAfter = !startWithBreak && modeDurations[timerMode].break > 0 && i < iterations - 1;
-                    const showBreakBetween = startWithBreak && modeDurations[timerMode].break > 0 && i > 0 && i < iterations;
-                    
-                    return (
-                      <div key={i} className="flex items-center">
-                        {showBreakFirst && (
-                          <div className="bg-blue-500 h-2 rounded" style={{ width: `${Math.min(modeDurations[timerMode].break * 2, 60)}px` }} />
-                        )}
-                        {showBreakBetween && (
-                          <div className="bg-blue-500 h-2 rounded ml-1" style={{ width: `${Math.min(modeDurations[timerMode].break * 2, 60)}px` }} />
-                        )}
-                        <div className={`bg-green-500 h-2 rounded ${(showBreakFirst || showBreakBetween) ? 'ml-1' : ''}`} 
-                             style={{ width: `${Math.min(modeDurations[timerMode].work * 2, 120)}px` }} />
-                        {showBreakAfter && (
-                          <div className="bg-blue-500 h-2 rounded ml-1" style={{ width: `${Math.min(modeDurations[timerMode].break * 2, 60)}px` }} />
-                        )}
+                <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Session Preview</div>
+                <div className="space-y-2">
+                  {/* Visual bars */}
+                  <div className="flex items-center gap-1 p-2 bg-white dark:bg-gray-800 rounded-lg overflow-hidden">
+                    <div className="flex items-center gap-1 flex-wrap">
+                      {Array.from({ length: Math.min(iterations, 10) }).map((_, i) => {
+                        const showBreakFirst = startWithBreak && i === 0;
+                        const showBreakAfter = !startWithBreak && modeDurations[timerMode].break > 0 && i < iterations - 1;
+                        const showBreakBetween = startWithBreak && modeDurations[timerMode].break > 0 && i > 0 && i < iterations;
+                        
+                        return (
+                          <div key={i} className="flex items-center gap-0.5">
+                            {showBreakFirst && (
+                              <div className="bg-blue-400 dark:bg-blue-500 h-6 w-3 rounded-sm" title="Break" />
+                            )}
+                            {showBreakBetween && (
+                              <div className="bg-blue-400 dark:bg-blue-500 h-6 w-3 rounded-sm" title="Break" />
+                            )}
+                            <div className="bg-green-500 dark:bg-green-600 h-6 w-6 rounded-sm" title={`Work ${i + 1}`} />
+                            {showBreakAfter && (
+                              <div className="bg-blue-400 dark:bg-blue-500 h-6 w-3 rounded-sm" title="Break" />
+                            )}
+                          </div>
+                        );
+                      })}
+                      {iterations > 10 && (
+                        <div className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-xs font-medium text-gray-600 dark:text-gray-400">
+                          +{iterations - 10} more
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Legend */}
+                  <div className="flex items-center gap-4 text-xs">
+                    <div className="flex items-center gap-1">
+                      <div className="w-3 h-3 bg-green-500 rounded-sm" />
+                      <span className="text-gray-600 dark:text-gray-400">Work ({modeDurations[timerMode].work}m)</span>
+                    </div>
+                    {modeDurations[timerMode].break > 0 && (
+                      <div className="flex items-center gap-1">
+                        <div className="w-3 h-3 bg-blue-400 rounded-sm" />
+                        <span className="text-gray-600 dark:text-gray-400">Break ({modeDurations[timerMode].break}m)</span>
                       </div>
-                    );
-                  })}
-                </div>
-                <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                  {timerMode === 'flowtime' 
-                    ? 'Flow until you naturally lose focus, then take a break'
-                    : `Total: ${modeDurations[timerMode].work * iterations + modeDurations[timerMode].break * Math.max(iterations - (startWithBreak ? 0 : 1), startWithBreak ? iterations : 0)} minutes`}
+                    )}
+                  </div>
+                  
+                  {/* Total time */}
+                  <div className="text-sm font-medium text-gray-700 dark:text-gray-300 pt-2 border-t border-gray-200 dark:border-gray-700">
+                    {timerMode === 'flowtime' 
+                      ? 'Flow until you naturally lose focus'
+                      : `Total: ${modeDurations[timerMode].work * iterations + modeDurations[timerMode].break * Math.max(iterations - (startWithBreak ? 0 : 1), startWithBreak ? iterations : 0)} minutes`}
+                  </div>
                 </div>
               </div>
               )}
