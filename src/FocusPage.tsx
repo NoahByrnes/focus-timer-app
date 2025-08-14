@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Play, Pause, Volume2, Settings, FileText, Timer, X, Plus, Minus, Zap, Target, TrendingUp, Coffee, Wind, Trees, Waves, Cloud, Headphones, VolumeX, Bell, BellOff, Keyboard, Flame } from 'lucide-react';
+import { Play, Pause, Volume2, Settings, FileText, Timer, X, Plus, Minus, Zap, Target, TrendingUp, Coffee, Wind, Trees, Waves, Cloud, Headphones, VolumeX, Bell, BellOff, Keyboard, Flame, ChevronDown, Check } from 'lucide-react';
 import { useTodos } from './context/TodoContext';
 import BackgroundGradient from './components/BackgroundGradient';
 
@@ -65,6 +65,8 @@ const FocusPage = () => {
   const [timeLeft, setTimeLeft] = useState(timerConfigs['pomodoro'].workTime);
   const [elapsedTime, setElapsedTime] = useState(0); // For stopwatch and flowtime
   const [selectedTodoId, setSelectedTodoId] = useState('');
+  const [isTaskSelectorOpen, setIsTaskSelectorOpen] = useState(false);
+  const taskSelectorRef = useRef<HTMLDivElement>(null);
   const [showConfigureMenu, setShowConfigureMenu] = useState(false);
   const [showLogMenu, setShowLogMenu] = useState(false);
   const [sessionNote, setSessionNote] = useState('');
@@ -103,6 +105,18 @@ const FocusPage = () => {
   
   const { todos, addSessionToTodo } = useTodos();
   const activeTodos = todos.filter(todo => !todo.completed);
+  
+  // Close task selector dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (taskSelectorRef.current && !taskSelectorRef.current.contains(event.target as Node)) {
+        setIsTaskSelectorOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
   
   // Focus sounds library
   const focusSounds = [
@@ -904,19 +918,75 @@ const FocusPage = () => {
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Select Task
           </label>
-          <select 
-            value={selectedTodoId}
-            onChange={(e) => setSelectedTodoId(e.target.value)}
-            disabled={isRunning}
-            className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 ring-accent focus:border-accent appearance-none text-gray-700 dark:text-gray-300 text-sm disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed"
-          >
-            <option value="">Unallocated (No specific task)</option>
-            {activeTodos.map(todo => (
-              <option key={todo.id} value={todo.id}>
-                {todo.text}
-              </option>
-            ))}
-          </select>
+          
+          {/* Custom Dropdown */}
+          <div className="relative" ref={taskSelectorRef}>
+            <button
+              type="button"
+              onClick={() => !isRunning && setIsTaskSelectorOpen(!isTaskSelectorOpen)}
+              disabled={isRunning}
+              className={`
+                w-full px-3 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg 
+                focus:outline-none focus:ring-2 ring-accent focus:border-accent 
+                text-sm flex items-center justify-between
+                ${isRunning ? 'opacity-50 cursor-not-allowed' : 'hover:border-gray-400 dark:hover:border-gray-500 cursor-pointer'}
+              `}
+            >
+              <div className="flex items-center space-x-2">
+                {selectedTodo ? (
+                  <span className="text-gray-900 dark:text-gray-100 truncate">{selectedTodo.text}</span>
+                ) : (
+                  <span className="text-gray-500 dark:text-gray-400">Unallocated (No specific task)</span>
+                )}
+              </div>
+              <ChevronDown className={`w-4 h-4 text-gray-400 flex-shrink-0 ${isTaskSelectorOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {/* Dropdown Menu */}
+            {isTaskSelectorOpen && !isRunning && (
+              <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden max-h-60 overflow-y-auto">
+                {/* Unallocated option */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedTodoId('');
+                    setIsTaskSelectorOpen(false);
+                  }}
+                  className={`
+                    w-full px-3 py-2.5 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 text-left
+                    ${selectedTodoId === '' ? 'bg-gray-50 dark:bg-gray-700' : ''}
+                  `}
+                >
+                  <span className="text-gray-500 dark:text-gray-400">Unallocated (No specific task)</span>
+                  {selectedTodoId === '' && (
+                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                  )}
+                </button>
+
+                {/* Todo options */}
+                {activeTodos.map(todo => (
+                  <button
+                    key={todo.id}
+                    type="button"
+                    onClick={() => {
+                      setSelectedTodoId(todo.id);
+                      setIsTaskSelectorOpen(false);
+                    }}
+                    className={`
+                      w-full px-3 py-2.5 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 text-left
+                      ${selectedTodoId === todo.id ? 'bg-gray-50 dark:bg-gray-700' : ''}
+                    `}
+                  >
+                    <span className="text-gray-900 dark:text-gray-100 truncate pr-2">{todo.text}</span>
+                    {selectedTodoId === todo.id && (
+                      <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          
           {selectedTodo && (
             <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
               Total time: {formatTime(selectedTodo.totalTime)}
