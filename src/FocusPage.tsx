@@ -427,7 +427,7 @@ const FocusPage = () => {
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 bg-white dark:bg-gray-900 relative overflow-hidden">
       {/* Background gradient animation */}
-      <div className="absolute inset-0 bg-gradient-to-br from-green-50 via-transparent to-blue-50 dark:from-green-950/20 dark:to-blue-950/20 opacity-50" />
+      <div className="absolute inset-0 bg-gradient-to-br from-green-50 via-transparent to-blue-50 dark:from-green-950/20 dark:to-blue-950/20 opacity-50 pointer-events-none" />
       
       {/* Custom Visual Notification */}
       {showNotification && (
