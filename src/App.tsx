@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, NavLink, Navigate, useLocation } from 'react-router-dom';
 import { Target, BarChart3, Settings, LogOut, User, Moon, Sun, ChevronDown, Menu, X, CheckSquare } from 'lucide-react';
 import FocusPage from './FocusPage';
@@ -168,20 +168,18 @@ const MobileTabBar = () => {
   );
 };
 
-const MainApp = () => {
-  const { user, signOut } = useAuth();
-  const { isDarkMode, toggleDarkMode } = useTheme();
-  const [isAnalyzeOpen, setIsAnalyzeOpen] = useState(false);
-  const [analyzeTimeRange, setAnalyzeTimeRange] = useState<'day' | 'week' | 'month' | 'year'>('week');
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  const handleSignOut = async () => {
-    await signOut();
-  };
-
-  if (!user) {
-    return <Auth />;
-  }
+const MainAppContent = ({ 
+  user, 
+  signOut, 
+  isDarkMode, 
+  toggleDarkMode, 
+  isAnalyzeOpen, 
+  setIsAnalyzeOpen, 
+  analyzeTimeRange, 
+  setAnalyzeTimeRange, 
+  isMobileMenuOpen, 
+  setIsMobileMenuOpen 
+}: any) => {
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-blue-950 overflow-hidden">
@@ -330,7 +328,7 @@ const MainApp = () => {
                 )}
               </NavLink>
               <button 
-                onClick={handleSignOut}
+                onClick={signOut}
                 className="flex items-center space-x-4 px-4 py-3 text-ios-red dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-2xl w-full text-left transition-all duration-300 group"
               >
                 <div className="p-2 rounded-xl bg-red-100/50 dark:bg-red-950/50 group-hover:bg-red-200/70 dark:group-hover:bg-red-900/70 transition-all duration-300">
@@ -439,7 +437,7 @@ const MainApp = () => {
                   <NavItem to="/settings" icon={Settings} label="Settings" onClick={() => setIsMobileMenuOpen(false)} />
                   <NavItem to="/profile" icon={User} label="Profile" onClick={() => setIsMobileMenuOpen(false)} />
                   <button 
-                    onClick={handleSignOut}
+                    onClick={signOut}
                     className="flex items-center space-x-4 px-4 py-3 text-ios-red dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-2xl w-full text-left transition-all duration-300 group"
                   >
                     <div className="p-2 rounded-xl bg-red-100/50 dark:bg-red-950/50 group-hover:bg-red-200/70 dark:group-hover:bg-red-900/70 transition-all duration-300">
@@ -494,13 +492,53 @@ const MainApp = () => {
   );
 };
 
+const AppWithRouter = () => {
+  const location = useLocation();
+  const { user, signOut } = useAuth();
+  const { isDarkMode, toggleDarkMode } = useTheme();
+  const [isAnalyzeOpen, setIsAnalyzeOpen] = useState(false);
+  const [analyzeTimeRange, setAnalyzeTimeRange] = useState<'day' | 'week' | 'month' | 'year'>('week');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  // Auto-close Analyze dropdown when navigating away from analyze
+  useEffect(() => {
+    if (!location.pathname.startsWith('/analyze')) {
+      setIsAnalyzeOpen(false);
+    }
+  }, [location.pathname]);
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
+
+  if (!user) {
+    return <Auth />;
+  }
+
+  // Pass all the props to the actual MainApp content
+  return (
+    <MainAppContent 
+      user={user}
+      signOut={handleSignOut}
+      isDarkMode={isDarkMode}
+      toggleDarkMode={toggleDarkMode}
+      isAnalyzeOpen={isAnalyzeOpen}
+      setIsAnalyzeOpen={setIsAnalyzeOpen}
+      analyzeTimeRange={analyzeTimeRange}
+      setAnalyzeTimeRange={setAnalyzeTimeRange}
+      isMobileMenuOpen={isMobileMenuOpen}
+      setIsMobileMenuOpen={setIsMobileMenuOpen}
+    />
+  );
+};
+
 const KairuApp = () => {
   return (
     <ThemeProvider>
       <AuthProvider>
         <TodoProvider>
           <Router>
-            <MainApp />
+            <AppWithRouter />
           </Router>
         </TodoProvider>
       </AuthProvider>
