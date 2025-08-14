@@ -1,11 +1,9 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
 import { Target, Mail, Lock, AlertCircle, Loader } from 'lucide-react';
 import BackgroundGradient from './BackgroundGradient';
 
 export const Auth = () => {
-  const { gradientStyle } = useTheme();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -88,7 +86,7 @@ export const Auth = () => {
   return (
     <div className="min-h-screen flex items-center justify-center relative py-12 px-4 sm:px-6 lg:px-8">
       {/* Unified background gradient */}
-      <BackgroundGradient style={gradientStyle} />
+      <BackgroundGradient />
       <div className="max-w-md w-full space-y-8 relative z-10">
         {/* Header */}
         <div className="text-center">

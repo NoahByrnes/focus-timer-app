@@ -2,11 +2,9 @@ import { useState, useEffect } from 'react';
 import { User, Mail, Award, Target, Clock, Calendar, TrendingUp, Edit2, Save, X } from 'lucide-react';
 import { useAuth } from './context/AuthContext';
 import { useTodos } from './context/TodoContext';
-import { useTheme } from './context/ThemeContext';
 import BackgroundGradient from './components/BackgroundGradient';
 
 const ProfilePage = () => {
-  const { gradientStyle } = useTheme();
   const { user } = useAuth();
   const { todos } = useTodos();
   const [isEditing, setIsEditing] = useState(false);
@@ -122,7 +120,7 @@ const ProfilePage = () => {
   return (
     <div className="flex-1 flex flex-col p-8 relative">
       {/* Unified background gradient */}
-      <BackgroundGradient style={gradientStyle} />
+      <BackgroundGradient />
       <div className="max-w-4xl w-full mx-auto relative z-10">
         {/* Header */}
         <div className="mb-8">

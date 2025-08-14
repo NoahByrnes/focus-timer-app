@@ -4,7 +4,7 @@ import { useTheme } from './context/ThemeContext';
 import BackgroundGradient from './components/BackgroundGradient';
 
 const SettingsPage = () => {
-  const { isDarkMode, toggleDarkMode, gradientStyle, setGradientStyle } = useTheme();
+  const { isDarkMode, toggleDarkMode } = useTheme();
   const [saved, setSaved] = useState(false);
   
   // Settings state
@@ -60,7 +60,7 @@ const SettingsPage = () => {
   return (
     <div className="flex-1 flex flex-col p-8 relative">
       {/* Unified background gradient */}
-      <BackgroundGradient style={gradientStyle} />
+      <BackgroundGradient />
       <div className="max-w-4xl w-full mx-auto relative z-10">
         {/* Header */}
         <div className="mb-8">
@@ -294,36 +294,6 @@ const SettingsPage = () => {
                 </div>
               </div>
               
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Background Style</label>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => setGradientStyle('default')}
-                    className={`flex-1 py-2 px-4 rounded-lg border ${
-                      gradientStyle === 'default'
-                        ? 'bg-green-50 dark:bg-green-900/30 border-green-500 text-green-700 dark:text-green-400'
-                        : 'bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300'
-                    }`}
-                  >
-                    Clean & Light
-                  </button>
-                  <button
-                    onClick={() => setGradientStyle('loveable')}
-                    className={`flex-1 py-2 px-4 rounded-lg border ${
-                      gradientStyle === 'loveable'
-                        ? 'bg-green-50 dark:bg-green-900/30 border-green-500 text-green-700 dark:text-green-400'
-                        : 'bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300'
-                    }`}
-                  >
-                    Dark & Dramatic
-                  </button>
-                </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                  {gradientStyle === 'default' 
-                    ? 'A clean, minimal gradient with subtle accents' 
-                    : 'Rich, blooming gradients with dramatic red and purple tones'}
-                </p>
-              </div>
             </div>
           </div>
 

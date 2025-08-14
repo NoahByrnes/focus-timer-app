@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BarChart3, TrendingUp, Clock, Target, Calendar, Pause, Users, Award } from 'lucide-react';
 import { useTodos } from './context/TodoContext';
-import { useTheme } from './context/ThemeContext';
 import BackgroundGradient from './components/BackgroundGradient';
 
 interface TagStats {
@@ -58,7 +57,6 @@ interface AnalyzePageProps {
 }
 
 const AnalyzePage = ({ timeRange = 'week' }: AnalyzePageProps) => {
-  const { gradientStyle } = useTheme();
   const { todos, tags } = useTodos();
   const [tagStats, setTagStats] = useState<TagStats[]>([]);
   const [timeDistribution, setTimeDistribution] = useState<TimeDistribution[]>([]);
@@ -551,7 +549,7 @@ const AnalyzePage = ({ timeRange = 'week' }: AnalyzePageProps) => {
   return (
     <div className="flex-1 flex flex-col p-4 sm:p-6 lg:p-8 relative overflow-x-hidden">
       {/* Unified background gradient */}
-      <BackgroundGradient style={gradientStyle} />
+      <BackgroundGradient />
       <div className="max-w-6xl w-full mx-auto relative z-10">
         {/* Page Header */}
         <div className="mb-8">
