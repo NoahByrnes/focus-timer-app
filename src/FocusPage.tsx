@@ -426,7 +426,7 @@ const FocusPage = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-8 lg:p-12 relative overflow-auto">
+    <div className="flex-1 flex flex-col items-center p-6 sm:p-8 lg:p-12 relative overflow-auto">
       {/* Unified background gradient */}
       <BackgroundGradient />
       
@@ -897,7 +897,7 @@ const FocusPage = () => {
       )}
 
       {/* Main Content Container */}
-      <div className="w-full max-w-3xl mx-auto flex flex-col items-center">
+      <div className="w-full max-w-3xl mx-auto flex flex-col items-center py-8">
         
         {/* Task Selector */}
         <div className="w-full max-w-xs mb-6 sm:mb-8">
