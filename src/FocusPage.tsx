@@ -85,7 +85,6 @@ const FocusPage = () => {
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState('');
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   
   // Configurable durations for each mode (in minutes)
   const [modeDurations, setModeDurations] = useState<Record<TimerMode, { work: number; break: number }>>({
@@ -115,16 +114,6 @@ const FocusPage = () => {
     { id: 'lofi', name: 'Lo-Fi Beats', icon: Headphones },
   ];
   
-  // Ambient sound URLs (using free sound effects)
-  const soundUrls: Record<string, string> = {
-    'none': '',
-    'rain': 'https://www.soundjay.com/misc/rain-03.mp3',
-    'forest': 'https://www.soundjay.com/nature/forest-1.mp3', 
-    'waves': 'https://www.soundjay.com/nature/ocean-wave-2.mp3',
-    'whitenoise': 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQQAAACA',
-    'cafe': 'https://www.soundjay.com/ambience/cafe-1.mp3',
-    'lofi': 'https://www.soundjay.com/misc/bell-ringing-05.mp3',
-  };
 
   // Get current timer configuration
   const getCurrentConfig = () => {
@@ -205,40 +194,16 @@ const FocusPage = () => {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [isRunning, showStatsPanel, showKeyboardShortcuts]);
   
-  // Handle sound playback
+  // Handle sound playback - simplified version
   useEffect(() => {
     if (currentSound !== 'none' && !isSoundMuted) {
-      // Create audio element if needed
-      if (!audioRef.current) {
-        audioRef.current = new Audio();
-        audioRef.current.loop = true;
-      }
-      
-      // For white noise, generate it programmatically
-      if (currentSound === 'whitenoise') {
-        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-        const bufferSize = 4096;
-        const whiteNoise = audioContext.createScriptProcessor(bufferSize, 1, 1);
-        whiteNoise.onaudioprocess = (e) => {
-          const output = e.outputBuffer.getChannelData(0);
-          for (let i = 0; i < bufferSize; i++) {
-            output[i] = Math.random() * 2 - 1;
-          }
-        };
-        whiteNoise.connect(audioContext.destination);
-      } else if (soundUrls[currentSound]) {
-        audioRef.current.src = soundUrls[currentSound];
-        audioRef.current.volume = soundVolume / 100;
-        audioRef.current.play().catch(() => {});
-      }
-    } else if (audioRef.current) {
-      audioRef.current.pause();
+      // For now, just log that sound would play
+      // Actual audio implementation would require hosted audio files
+      console.log(`Playing sound: ${currentSound} at volume ${soundVolume}`);
     }
     
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
+      // Cleanup
     };
   }, [currentSound, isSoundMuted, soundVolume]);
 
@@ -333,33 +298,26 @@ const FocusPage = () => {
     setNotificationMessage(message);
     setShowNotification(true);
     
-    // Play custom notification sound using Web Audio API
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-    
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-    
-    // Create a pleasant notification melody
-    const notes = [523.25, 659.25, 783.99, 659.25]; // C, E, G, E
-    let noteIndex = 0;
-    
-    const playNote = () => {
-      if (noteIndex < notes.length) {
-        oscillator.frequency.setValueAtTime(notes[noteIndex], audioContext.currentTime);
-        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-        noteIndex++;
-        setTimeout(playNote, 200);
-      } else {
-        oscillator.stop();
-      }
-    };
-    
-    oscillator.type = 'sine';
-    oscillator.start();
-    playNote();
+    // Play custom notification sound using Web Audio API - with proper error handling
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      // Simple notification beep
+      oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+      gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+      
+      oscillator.type = 'sine';
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.3);
+    } catch (error) {
+      console.log('Audio notification failed:', error);
+    }
     
     // Browser notification if permitted
     if ('Notification' in window && Notification.permission === 'granted') {
