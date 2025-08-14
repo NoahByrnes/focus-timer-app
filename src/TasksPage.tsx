@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Plus, Check, Trash2, Clock, Target, Zap } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Plus, Check, Trash2, Clock, Target, Zap, ChevronDown } from 'lucide-react';
 import { useTodos } from './context/TodoContext';
 import { TagSelector } from './components/TagSelector';
 import BackgroundGradient from './components/BackgroundGradient';
@@ -9,6 +9,20 @@ const TasksPage = () => {
   const [newTodo, setNewTodo] = useState('');
   const [newTodoTagId, setNewTodoTagId] = useState<string>('');
   const [taskFilter, setTaskFilter] = useState<'active' | 'completed' | 'all'>('active');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const filterDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (filterDropdownRef.current && !filterDropdownRef.current.contains(event.target as Node)) {
+        setIsFilterOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleAddTodo = async () => {
     if (newTodo.trim()) {
@@ -186,15 +200,74 @@ const TasksPage = () => {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Target className="w-5 h-5 text-blue-500" />
-                <select
-                  value={taskFilter}
-                  onChange={(e) => setTaskFilter(e.target.value as 'active' | 'completed' | 'all')}
-                  className="text-lg font-semibold text-gray-900 dark:text-gray-100 bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 rounded-lg px-2 py-1 cursor-pointer hover:bg-gray-100/50 dark:hover:bg-gray-800/50"
-                >
-                  <option value="active">Active Tasks</option>
-                  <option value="completed">Completed Tasks</option>
-                  <option value="all">All Tasks</option>
-                </select>
+                
+                {/* Custom Dropdown for Filter */}
+                <div className="relative" ref={filterDropdownRef}>
+                  <button
+                    onClick={() => setIsFilterOpen(!isFilterOpen)}
+                    className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 ring-accent focus:border-accent text-sm flex items-center justify-between gap-2 hover:border-gray-400 dark:hover:border-gray-500 cursor-pointer min-w-[140px]"
+                  >
+                    <span className="font-semibold text-gray-900 dark:text-gray-100">
+                      {taskFilter === 'active' ? 'Active Tasks' : taskFilter === 'completed' ? 'Completed Tasks' : 'All Tasks'}
+                    </span>
+                    <ChevronDown className={`w-4 h-4 text-gray-400 ${isFilterOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {/* Dropdown Menu */}
+                  {isFilterOpen && (
+                    <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden">
+                      <button
+                        onClick={() => {
+                          setTaskFilter('active');
+                          setIsFilterOpen(false);
+                        }}
+                        className={`w-full px-3 py-2.5 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 text-left ${
+                          taskFilter === 'active' ? 'bg-gray-50 dark:bg-gray-700' : ''
+                        }`}
+                      >
+                        <span className="text-gray-900 dark:text-gray-100">Active Tasks</span>
+                        {taskFilter === 'active' && (
+                          <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setTaskFilter('completed');
+                          setIsFilterOpen(false);
+                        }}
+                        className={`w-full px-3 py-2.5 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 text-left ${
+                          taskFilter === 'completed' ? 'bg-gray-50 dark:bg-gray-700' : ''
+                        }`}
+                      >
+                        <span className="text-gray-900 dark:text-gray-100">Completed Tasks</span>
+                        {taskFilter === 'completed' && (
+                          <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setTaskFilter('all');
+                          setIsFilterOpen(false);
+                        }}
+                        className={`w-full px-3 py-2.5 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 text-left ${
+                          taskFilter === 'all' ? 'bg-gray-50 dark:bg-gray-700' : ''
+                        }`}
+                      >
+                        <span className="text-gray-900 dark:text-gray-100">All Tasks</span>
+                        {taskFilter === 'all' && (
+                          <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
+                  )}
+                </div>
+
                 <span className="text-sm font-normal text-gray-500 dark:text-gray-400">({filteredTodos.length})</span>
               </div>
             </div>
