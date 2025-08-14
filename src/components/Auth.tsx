@@ -45,8 +45,10 @@ export const Auth = () => {
         if (error) {
           setError(error.message);
           setIsLoading(false);
+        } else {
+          // Set loading to false on successful sign-in
+          setIsLoading(false);
         }
-        // Don't set loading to false on success - let the auth state change handle navigation
       } else {
         const { error } = await signUp(email, password);
         if (error) {
