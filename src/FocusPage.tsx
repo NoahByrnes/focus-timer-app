@@ -115,15 +115,6 @@ const FocusPage = () => {
   ];
   
 
-  // Get current timer configuration
-  const getCurrentConfig = useCallback(() => {
-    const durations = modeDurations[timerMode];
-    return {
-      ...timerConfigs[timerMode],
-      workTime: durations.work * 60,
-      breakTime: durations.break * 60,
-    };
-  }, [timerMode, modeDurations]);
 
   // Timer logic
   useEffect(() => {
@@ -205,14 +196,15 @@ const FocusPage = () => {
     sessionTimeElapsed.current = 0;
     
     // Handle starting with break if configured
-    const config = getCurrentConfig();
-    if ((timerMode === 'reverse-pomodoro' || startWithBreak) && !isBreakTime && timeLeft === config.workTime) {
+    const workTime = modeDurations[timerMode].work * 60;
+    const breakTime = modeDurations[timerMode].break * 60;
+    if ((timerMode === 'reverse-pomodoro' || startWithBreak) && !isBreakTime && timeLeft === workTime) {
       setIsBreakTime(true);
-      setTimeLeft(config.breakTime);
+      setTimeLeft(breakTime);
     }
     
     setIsRunning(true);
-  }, [timerMode, startWithBreak, isBreakTime, timeLeft, getCurrentConfig]);
+  }, [timerMode, startWithBreak, isBreakTime, timeLeft, modeDurations]);
 
   const pauseTimer = useCallback(() => {
     setIsRunning(false);
@@ -232,7 +224,8 @@ const FocusPage = () => {
       triggerNotification('Break time is over. Ready to focus again? 💪');
     }
     
-    const config = getCurrentConfig();
+    const workTime = modeDurations[timerMode].work * 60;
+    const breakTime = modeDurations[timerMode].break * 60;
     
     // Toggle between work and break
     if (isBreakTime) {
@@ -240,23 +233,23 @@ const FocusPage = () => {
       if (currentIteration < iterations) {
         setCurrentIteration(prev => prev + 1);
         setIsBreakTime(false);
-        setTimeLeft(config.workTime);
+        setTimeLeft(workTime);
         // Auto-start next work session
         setIsRunning(true);
       } else {
         // All iterations complete
         setIsBreakTime(false);
-        setTimeLeft(config.workTime);
+        setTimeLeft(workTime);
         setCurrentIteration(1);
       }
     } else {
       // Work is over, start break (if applicable)
       saveSession();
-      if (config.breakTime > 0) {
+      if (breakTime > 0) {
         setIsBreakTime(true);
-        setTimeLeft(config.breakTime);
+        setTimeLeft(breakTime);
         // Show breathing guide during breaks
-        if (config.breakTime >= 60) {
+        if (breakTime >= 60) {
           setShowBreathingGuide(true);
         }
         // Auto-start break
@@ -264,11 +257,11 @@ const FocusPage = () => {
       } else if (currentIteration < iterations) {
         // No break, but more iterations to go
         setCurrentIteration(prev => prev + 1);
-        setTimeLeft(config.workTime);
+        setTimeLeft(workTime);
         setIsRunning(true);
       } else {
         // All iterations complete
-        setTimeLeft(config.workTime);
+        setTimeLeft(workTime);
         setCurrentIteration(1);
       }
     }
@@ -332,13 +325,13 @@ const FocusPage = () => {
     sessionStartTime.current = null;
     setCurrentIteration(1);
     
-    const config = getCurrentConfig();
+    const workTime = modeDurations[timerMode].work * 60;
     if (timerMode === 'stopwatch' || timerMode === 'flowtime') {
       setTimeLeft(0);
     } else {
-      setTimeLeft(config.workTime);
+      setTimeLeft(workTime);
     }
-  }, [timerMode, getCurrentConfig]);
+  }, [timerMode, modeDurations]);
 
   const handleModeChange = (mode: TimerMode) => {
     setTimerMode(mode);
@@ -413,8 +406,9 @@ const FocusPage = () => {
     if (timerMode === 'stopwatch' || timerMode === 'flowtime') {
       return 0; // No progress bar for count-up modes
     }
-    const config = getCurrentConfig();
-    const totalTime = isBreakTime ? config.breakTime : config.workTime;
+    const workTime = modeDurations[timerMode].work * 60;
+    const breakTime = modeDurations[timerMode].break * 60;
+    const totalTime = isBreakTime ? breakTime : workTime;
     if (totalTime === 0) return 0;
     return ((totalTime - timeLeft) / totalTime) * 100;
   };
@@ -1043,9 +1037,10 @@ const FocusPage = () => {
                 setIsRunning(false);
                 saveSession();
                 // Optionally start break
-                if (getCurrentConfig().breakTime > 0) {
+                const breakTime = modeDurations[timerMode].break * 60;
+                if (breakTime > 0) {
                   setIsBreakTime(true);
-                  setTimeLeft(getCurrentConfig().breakTime);
+                  setTimeLeft(breakTime);
                   setIsRunning(true);
                 }
               }}
