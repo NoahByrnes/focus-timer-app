@@ -3,6 +3,7 @@ import { Plus, Check, Trash2, Clock, Target, Zap, ChevronDown } from 'lucide-rea
 import { useTodos } from './context/TodoContext';
 import { TagSelector } from './components/TagSelector';
 import BackgroundGradient from './components/BackgroundGradient';
+import { ParticleEffect } from './components/ParticleEffect';
 
 const TasksPage = () => {
   const { todos, tags, loading, addTodo, toggleTodo, deleteTodo } = useTodos();
@@ -11,6 +12,7 @@ const TasksPage = () => {
   const [taskFilter, setTaskFilter] = useState<'active' | 'completed' | 'all'>('active');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const filterDropdownRef = useRef<HTMLDivElement>(null);
+  const [particleEffect, setParticleEffect] = useState<{ trigger: boolean; x: number; y: number; todoId: string } | null>(null);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -296,7 +298,18 @@ const TasksPage = () => {
                       }`}
                     >
                       <button
-                        onClick={() => toggleTodo(todo.id)}
+                        onClick={(e) => {
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          if (!todo.completed) {
+                            setParticleEffect({
+                              trigger: true,
+                              x: rect.left + rect.width / 2,
+                              y: rect.top + rect.height / 2,
+                              todoId: todo.id
+                            });
+                          }
+                          toggleTodo(todo.id);
+                        }}
                         className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0  ${
                           todo.completed
                             ? 'bg-green-500 dark:bg-green-600'
@@ -343,6 +356,17 @@ const TasksPage = () => {
 
         </div>
       </div>
+      
+      {/* Particle Effect */}
+      {particleEffect && (
+        <ParticleEffect
+          trigger={particleEffect.trigger}
+          type="confetti"
+          x={particleEffect.x}
+          y={particleEffect.y}
+          onComplete={() => setParticleEffect(null)}
+        />
+      )}
     </div>
   );
 };

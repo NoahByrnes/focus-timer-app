@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Play, Pause, Volume2, Settings, FileText, Timer, X, Plus, Minus, Zap, Target, TrendingUp, Coffee, Wind, Trees, Waves, Cloud, Headphones, VolumeX, Bell, BellOff, Keyboard, Flame, ChevronDown, Check } from 'lucide-react';
+import { Play, Pause, Settings, FileText, Timer, X, Plus, Minus, Zap, Target, TrendingUp, Bell, BellOff, Keyboard, Flame, ChevronDown, Check } from 'lucide-react';
 import { useTodos } from './context/TodoContext';
 import BackgroundGradient from './components/BackgroundGradient';
 
-type TimerMode = 'pomodoro' | '52-17' | 'flowtime' | '90-20' | '2-minute' | 'reverse-pomodoro' | 'stopwatch';
+type TimerMode = 'pomodoro' | 'flowtime' | 'custom';
 
 interface TimerConfig {
   name: string;
@@ -20,41 +20,17 @@ const timerConfigs: Record<TimerMode, TimerConfig> = {
     workTime: 25 * 60,
     breakTime: 5 * 60,
   },
-  '52-17': {
-    name: '52/17 Rule',
-    description: '52 min work, 17 min break',
-    workTime: 52 * 60,
-    breakTime: 17 * 60,
-  },
   'flowtime': {
     name: 'Flowtime',
-    description: 'Work until you lose focus',
+    description: 'Work until you find your natural break',
     workTime: 0, // No preset time
     breakTime: 5 * 60,
   },
-  '90-20': {
-    name: '90/20 Rule',
-    description: '90 min deep focus, 20 min rest',
-    workTime: 90 * 60,
-    breakTime: 20 * 60,
-  },
-  '2-minute': {
-    name: '2-Minute Rule',
-    description: 'Start with just 2 minutes',
-    workTime: 2 * 60,
-    breakTime: 1 * 60,
-  },
-  'reverse-pomodoro': {
-    name: 'Reverse Pomodoro',
-    description: 'Start with a break, then work',
+  'custom': {
+    name: 'Custom',
+    description: 'Set your own work/break times',
     workTime: 25 * 60,
-    breakTime: 5 * 60, // Break comes first
-  },
-  'stopwatch': {
-    name: 'Stopwatch',
-    description: 'Basic timer, count up',
-    workTime: 0,
-    breakTime: 0,
+    breakTime: 5 * 60,
   },
 };
 
@@ -72,32 +48,24 @@ const FocusPage = () => {
   const [sessionNote, setSessionNote] = useState('');
   const [iterations, setIterations] = useState(1);
   const [currentIteration, setCurrentIteration] = useState(1);
-  const [startWithBreak, setStartWithBreak] = useState(false); // For reverse pomodoro and custom configurations
   
-  // New feature states
-  const [showSoundMenu, setShowSoundMenu] = useState(false);
-  const [currentSound, setCurrentSound] = useState<string>('none');
-  const [soundVolume, setSoundVolume] = useState(50);
-  const [isSoundMuted, setIsSoundMuted] = useState(false);
+  // Core feature states
   const [showStatsPanel, setShowStatsPanel] = useState(false);
   const [dailyGoal, setDailyGoal] = useState(120); // minutes
   const [dailyProgress, setDailyProgress] = useState(0); // minutes
   const [currentStreak, setCurrentStreak] = useState(0);
-  const [showBreathingGuide, setShowBreathingGuide] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState('');
+  // const [isAmbientMode, setIsAmbientMode] = useState(false);
+  // const [showPopOutOption, setShowPopOutOption] = useState(false);
   
   // Configurable durations for each mode (in minutes)
   const [modeDurations, setModeDurations] = useState<Record<TimerMode, { work: number; break: number }>>({
     'pomodoro': { work: 25, break: 5 },
-    '52-17': { work: 52, break: 17 },
     'flowtime': { work: 0, break: 5 },
-    '90-20': { work: 90, break: 20 },
-    '2-minute': { work: 2, break: 1 },
-    'reverse-pomodoro': { work: 25, break: 5 },
-    'stopwatch': { work: 0, break: 0 },
+    'custom': { work: 25, break: 5 },
   });
   
   const sessionStartTime = useRef<Date | null>(null);
@@ -118,16 +86,6 @@ const FocusPage = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
   
-  // Focus sounds library
-  const focusSounds = [
-    { id: 'none', name: 'No Sound', icon: VolumeX },
-    { id: 'rain', name: 'Rain', icon: Cloud },
-    { id: 'forest', name: 'Forest', icon: Trees },
-    { id: 'waves', name: 'Ocean Waves', icon: Waves },
-    { id: 'whitenoise', name: 'White Noise', icon: Wind },
-    { id: 'cafe', name: 'Café Ambience', icon: Coffee },
-    { id: 'lofi', name: 'Lo-Fi Beats', icon: Headphones },
-  ];
   
 
 
@@ -136,7 +94,7 @@ const FocusPage = () => {
     let interval: number | null = null;
     
     if (isRunning) {
-      if (timerMode === 'stopwatch' || timerMode === 'flowtime') {
+      if (timerMode === 'flowtime') {
         // Count up for stopwatch and flowtime
         interval = setInterval(() => {
           setElapsedTime(prev => prev + 1);
@@ -167,19 +125,6 @@ const FocusPage = () => {
     };
   }, [isRunning, timeLeft, timerMode, isBreakTime]);
   
-  
-  // Handle sound playback - simplified version
-  useEffect(() => {
-    if (currentSound !== 'none' && !isSoundMuted) {
-      // For now, just log that sound would play
-      // Actual audio implementation would require hosted audio files
-      console.log(`Playing sound: ${currentSound} at volume ${soundVolume}`);
-    }
-    
-    return () => {
-      // Cleanup
-    };
-  }, [currentSound, isSoundMuted, soundVolume]);
 
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -210,20 +155,12 @@ const FocusPage = () => {
     sessionStartTime.current = new Date();
     sessionTimeElapsed.current = 0;
     
-    // Handle starting with break if configured
-    const workTime = modeDurations[timerMode].work * 60;
-    const breakTime = modeDurations[timerMode].break * 60;
-    if ((timerMode === 'reverse-pomodoro' || startWithBreak) && !isBreakTime && timeLeft === workTime) {
-      setIsBreakTime(true);
-      setTimeLeft(breakTime);
-    }
-    
     setIsRunning(true);
-  }, [timerMode, startWithBreak, isBreakTime, timeLeft, modeDurations]);
+  }, [timerMode, isBreakTime, timeLeft, modeDurations]);
 
   const pauseTimer = useCallback(() => {
     setIsRunning(false);
-    if (timerMode !== 'flowtime' && timerMode !== 'stopwatch') {
+    if (timerMode !== 'flowtime' && true) {
       saveSession();
     }
   }, [timerMode, saveSession]);
@@ -263,10 +200,6 @@ const FocusPage = () => {
       if (breakTime > 0) {
         setIsBreakTime(true);
         setTimeLeft(breakTime);
-        // Show breathing guide during breaks
-        if (breakTime >= 60) {
-          setShowBreathingGuide(true);
-        }
         // Auto-start break
         setIsRunning(true);
       } else if (currentIteration < iterations) {
@@ -341,7 +274,7 @@ const FocusPage = () => {
     setCurrentIteration(1);
     
     const workTime = modeDurations[timerMode].work * 60;
-    if (timerMode === 'stopwatch' || timerMode === 'flowtime') {
+    if (timerMode === 'flowtime') {
       setTimeLeft(0);
     } else {
       setTimeLeft(workTime);
@@ -355,9 +288,6 @@ const FocusPage = () => {
     setElapsedTime(0);
     sessionTimeElapsed.current = 0;
     setCurrentIteration(1);
-    
-    // Set startWithBreak for reverse pomodoro
-    setStartWithBreak(mode === 'reverse-pomodoro');
     
     const durations = modeDurations[mode];
     setTimeLeft(durations.work * 60);
@@ -418,7 +348,7 @@ const FocusPage = () => {
 
   // Calculate progress based on mode
   const getProgress = () => {
-    if (timerMode === 'stopwatch' || timerMode === 'flowtime') {
+    if (timerMode === 'flowtime') {
       return 0; // No progress bar for count-up modes
     }
     const workTime = modeDurations[timerMode].work * 60;
@@ -433,7 +363,7 @@ const FocusPage = () => {
   
   // Get display time based on mode
   const getDisplayTime = () => {
-    if (timerMode === 'stopwatch' || timerMode === 'flowtime') {
+    if (timerMode === 'flowtime') {
       return formatTime(elapsedTime);
     }
     return formatTime(timeLeft);
@@ -551,18 +481,14 @@ const FocusPage = () => {
             <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3 mb-4">
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 {timerMode === 'pomodoro' && 'Classic Pomodoro technique for focused work sessions with regular breaks.'}
-                {timerMode === '52-17' && 'Extended focus sessions of 52 minutes with 17-minute breaks for deeper concentration.'}
                 {timerMode === 'flowtime' && 'Work until you naturally lose focus, then take a break. Perfect for finding your rhythm.'}
-                {timerMode === '90-20' && 'Based on ultradian rhythms - 90 minutes of deep focus followed by 20-minute rest.'}
-                {timerMode === '2-minute' && 'Start with just 2 minutes to overcome procrastination. Momentum often keeps you going.'}
-                {timerMode === 'reverse-pomodoro' && 'Start with a break to ease into work. Helpful when you\'re resisting starting.'}
-                {timerMode === 'stopwatch' && 'Simple timer that counts up. Track your work without predetermined durations.'}
+                {timerMode === 'custom' && 'Set your own work and break durations to match your personal productivity rhythm.'}
               </p>
             </div>
             
             <div className="space-y-6">
               {/* Focus Duration - Hide for stopwatch and flowtime */}
-              {timerMode !== 'stopwatch' && timerMode !== 'flowtime' && (
+              {timerMode !== 'flowtime' && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                     Focus Duration
@@ -600,7 +526,7 @@ const FocusPage = () => {
               )}
 
               {/* Break Duration - Hide for stopwatch */}
-              {timerMode !== 'stopwatch' && (
+              {true && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                     {timerMode === 'flowtime' ? 'Break Duration (after ending flow)' : 'Break Duration'}
@@ -638,7 +564,7 @@ const FocusPage = () => {
               )}
 
               {/* Iterations - Hide for stopwatch and flowtime */}
-              {timerMode !== 'stopwatch' && timerMode !== 'flowtime' && (
+              {timerMode !== 'flowtime' && (
                 <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                   Iterations
@@ -667,38 +593,15 @@ const FocusPage = () => {
               </div>
               )}
 
-              {/* Start with Break Toggle - Hide for stopwatch */}
-              {timerMode !== 'stopwatch' && (
-                <div>
-                <label className="flex items-center space-x-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={startWithBreak}
-                    onChange={(e) => setStartWithBreak(e.target.checked)}
-                    className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 dark:focus:ring-green-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                  />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Start with break period
-                  </span>
-                </label>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 ml-7">
-                  {timerMode === 'reverse-pomodoro' 
-                    ? 'Reverse Pomodoro starts with a break to help overcome resistance'
-                    : timerMode === '2-minute'
-                    ? 'Starting with a break can help ease into difficult tasks'
-                    : 'Begin your session with a break before focusing'}
-                </p>
-              </div>
-              )}
 
               {/* Session Summary */}
-              {timerMode !== 'stopwatch' && (
+              {true && (
                 <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
                   <div className="text-center">
                     <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                       {timerMode === 'flowtime' 
                         ? 'Flexible Duration'
-                        : `${modeDurations[timerMode].work * iterations + modeDurations[timerMode].break * Math.max(iterations - (startWithBreak ? 0 : 1), startWithBreak ? iterations : 0)} minutes`}
+                        : `${modeDurations[timerMode].work * iterations + modeDurations[timerMode].break * (iterations - 1)} minutes`}
                     </div>
                     <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                       {timerMode === 'flowtime' 
@@ -783,96 +686,6 @@ const FocusPage = () => {
                 Cancel
               </button>
             </div>
-          </div>
-        </div>
-      )}
-      
-      {/* Sound Menu Modal */}
-      {showSoundMenu && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-md">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Ambient Sounds</h2>
-              <button onClick={() => setShowSoundMenu(false)}>
-                <X className="w-5 h-5 text-gray-400" />
-              </button>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              {focusSounds.map(sound => {
-                const Icon = sound.icon;
-                return (
-                  <button
-                    key={sound.id}
-                    onClick={() => setCurrentSound(sound.id)}
-                    className={`p-4 rounded-lg border-2 transition-all ${
-                      currentSound === sound.id
-                        ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
-                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
-                    }`}
-                  >
-                    <Icon className="w-6 h-6 mx-auto mb-2 text-gray-600 dark:text-gray-400" />
-                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{sound.name}</p>
-                  </button>
-                );
-              })}
-            </div>
-            
-            <div className="space-y-3">
-              <div>
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Volume</label>
-                <div className="flex items-center space-x-3 mt-2">
-                  <VolumeX className="w-4 h-4 text-gray-400" />
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={soundVolume}
-                    onChange={(e) => setSoundVolume(parseInt(e.target.value))}
-                    className="flex-1"
-                  />
-                  <Volume2 className="w-4 h-4 text-gray-400" />
-                </div>
-              </div>
-              
-              <button
-                onClick={() => setIsSoundMuted(!isSoundMuted)}
-                className={`w-full py-2 rounded-lg font-medium transition-colors ${
-                  isSoundMuted
-                    ? 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
-                    : 'bg-green-500 hover:bg-green-600 text-white'
-                }`}
-              >
-                {isSoundMuted ? 'Unmute' : 'Mute'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      
-      {/* Breathing Guide Modal */}
-      {showBreathingGuide && isBreakTime && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-          <div className="text-center">
-            <button
-              onClick={() => setShowBreathingGuide(false)}
-              className="absolute top-4 right-4 text-white/60 hover:text-white"
-            >
-              <X className="w-6 h-6" />
-            </button>
-            
-            <div className="relative w-48 h-48 mx-auto mb-8">
-              <div className="absolute inset-0 bg-blue-500 rounded-full animate-pulse opacity-20" />
-              <div className="absolute inset-4 bg-blue-400 rounded-full animate-pulse animation-delay-200 opacity-30" />
-              <div className="absolute inset-8 bg-blue-300 rounded-full animate-pulse animation-delay-400 opacity-40" />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Wind className="w-16 h-16 text-white" />
-              </div>
-            </div>
-            
-            <h3 className="text-2xl font-light text-white mb-2">Take a Deep Breath</h3>
-            <p className="text-white/80">Inhale... Hold... Exhale...</p>
-            <p className="text-sm text-white/60 mt-4">Relaxation helps maintain focus</p>
           </div>
         </div>
       )}
@@ -1045,12 +858,12 @@ const FocusPage = () => {
                     {getDisplayTime()}
                   </p>
                 </div>
-                {(timerMode === 'flowtime' || timerMode === 'stopwatch') && (
+                {(timerMode === 'flowtime') && (
                   <p className="text-caption text-ios-gray dark:text-gray-400 font-medium">
                     {timerMode === 'flowtime' ? 'Track your natural flow' : 'Counting up'}
                   </p>
                 )}
-                {timerMode !== 'stopwatch' && timerMode !== 'flowtime' && (
+                {timerMode !== 'flowtime' && (
                   <div className="flex items-center justify-center space-x-2 pt-2">
                     <div className={`w-2 h-2 rounded-full  ${
                       currentIteration === 1 ? 'bg-ios-blue' : 'bg-gray-300 dark:bg-gray-600'
@@ -1074,7 +887,7 @@ const FocusPage = () => {
 
       {/* Apple-style Start Button */}
       {!isRunning && !isBreakTime && (
-        timerMode === 'stopwatch' || timerMode === 'flowtime' ? elapsedTime === 0 : timeLeft === modeDurations[timerMode].work * 60
+        timerMode === 'flowtime' ? elapsedTime === 0 : timeLeft === modeDurations[timerMode].work * 60
       ) && (
         <button
           onClick={startTimer}
@@ -1084,16 +897,14 @@ const FocusPage = () => {
             <Play className="w-5 h-5" />
           </div>
           <span>
-            {timerMode === 'stopwatch' ? 'Start Stopwatch' : 
-             timerMode === 'flowtime' ? 'Start Flow Session' :
-             startWithBreak ? 'Start with Break' : 'Start Focus Session'}
+            {timerMode === 'flowtime' ? 'Start Flow Session' : 'Start Focus Session'}
           </span>
         </button>
       )}
 
       {/* Apple-style Control Buttons */}
       {(isRunning || (!isRunning && (
-        (timerMode === 'stopwatch' || timerMode === 'flowtime' ? elapsedTime > 0 : timeLeft !== modeDurations[timerMode].work * 60) || isBreakTime
+        (timerMode === 'flowtime' ? elapsedTime > 0 : timeLeft !== modeDurations[timerMode].work * 60) || isBreakTime
       ))) && (
         <div className="flex items-center justify-center space-x-6 sm:space-x-8 mb-12 sm:mb-16">
           <button
@@ -1104,17 +915,6 @@ const FocusPage = () => {
               <Pause className="w-6 h-6 sm:w-8 sm:h-8" />
             ) : (
               <Play className="w-6 h-6 sm:w-8 sm:h-8 ml-0.5" />
-            )}
-          </button>
-          
-          <button 
-            onClick={() => setShowSoundMenu(true)}
-            className="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 backdrop-blur-xl bg-white/60 dark:bg-gray-900/60 hover:bg-white/80 dark:hover:bg-gray-800/80 border border-white/30 dark:border-gray-700/30 rounded-2xl shadow-lg  active:scale-95"
-          >
-            {currentSound !== 'none' ? (
-              <Headphones className="w-5 h-5 sm:w-6 sm:h-6 text-ios-green" />
-            ) : (
-              <Volume2 className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600 dark:text-gray-400" />
             )}
           </button>
 
@@ -1159,12 +959,8 @@ const FocusPage = () => {
               className="px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg appearance-none pr-8 sm:pr-10 text-xs sm:text-sm font-medium cursor-pointer focus:outline-none focus:ring-2 ring-accent"
             >
               <option value="pomodoro">Pomodoro</option>
-              <option value="52-17">52/17</option>
               <option value="flowtime">Flowtime</option>
-              <option value="90-20">90/20</option>
-              <option value="2-minute">2-Minute</option>
-              <option value="reverse-pomodoro">Reverse</option>
-              <option value="stopwatch">Stopwatch</option>
+              <option value="custom">Custom</option>
             </select>
             <Timer className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2 w-3 h-3 sm:w-4 sm:h-4 text-gray-500 pointer-events-none" />
           </div>
@@ -1192,18 +988,6 @@ const FocusPage = () => {
       
       {/* Quick Action Buttons */}
       <div className="fixed bottom-4 right-4 flex flex-col space-y-2">
-        <button
-          onClick={() => setShowSoundMenu(true)}
-          className={`p-3 rounded-full shadow-lg transition-all ${
-            currentSound !== 'none' 
-              ? 'bg-green-500 hover:bg-green-600 text-white' 
-              : 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400'
-          }`}
-          title="Ambient Sounds"
-        >
-          <Headphones className="w-5 h-5" />
-        </button>
-        
         <button
           onClick={() => setShowStatsPanel(!showStatsPanel)}
           className="p-3 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-full shadow-lg text-gray-600 dark:text-gray-400"
