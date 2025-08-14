@@ -1151,7 +1151,7 @@ const FocusPage = () => {
           onClick={() => setNotificationsEnabled(!notificationsEnabled)}
           className={`p-3 rounded-full shadow-lg transition-all ${
             notificationsEnabled 
-              ? 'bg-blue-500 hover:bg-blue-600 text-white' 
+              ? 'bg-accent hover:opacity-90 text-white' 
               : 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400'
           }`}
           title="Notifications"

@@ -275,6 +275,31 @@
 
 /* Utility classes */
 @layer utilities {
+  /* Accent color utilities */
+  .bg-accent {
+    background-color: var(--accent-color);
+  }
+  
+  .text-accent {
+    color: var(--accent-color);
+  }
+  
+  .border-accent {
+    border-color: var(--accent-color);
+  }
+  
+  .bg-accent-light {
+    background-color: rgba(var(--accent-rgb), 0.1);
+  }
+  
+  .bg-accent-medium {
+    background-color: rgba(var(--accent-rgb), 0.2);
+  }
+  
+  .ring-accent {
+    --tw-ring-color: rgba(var(--accent-rgb), 0.2);
+  }
+  
   .text-primary {
     @apply text-black dark:text-white;
   }

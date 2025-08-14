@@ -170,11 +170,11 @@ const TasksPage = () => {
                 onChange={(e) => setNewTodo(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleAddTodo()}
                 placeholder="What needs to be done?"
-                className="flex-1 px-4 py-3 bg-gray-50/50 dark:bg-gray-800/50 backdrop-blur rounded-xl border border-gray-200/50 dark:border-gray-700/50 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 placeholder-gray-400 dark:placeholder-gray-600 text-gray-900 dark:text-gray-100"
+                className="flex-1 px-4 py-3 bg-gray-50/50 dark:bg-gray-800/50 backdrop-blur rounded-xl border border-gray-200/50 dark:border-gray-700/50 focus:outline-none focus:ring-2 ring-accent focus:border-accent placeholder-gray-400 dark:placeholder-gray-600 text-gray-900 dark:text-gray-100"
               />
               <button
                 onClick={handleAddTodo}
-                className="p-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95"
+                className="p-3 bg-accent hover:opacity-90 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95"
               >
                 <Plus className="w-6 h-6" />
               </button>

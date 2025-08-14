@@ -4,7 +4,7 @@ import { useTheme } from './context/ThemeContext';
 import BackgroundGradient from './components/BackgroundGradient';
 
 const SettingsPage = () => {
-  const { isDarkMode, toggleDarkMode } = useTheme();
+  const { isDarkMode, toggleDarkMode, accentColor, setAccentColor } = useTheme();
   const [saved, setSaved] = useState(false);
   
   // Settings state
@@ -25,7 +25,6 @@ const SettingsPage = () => {
     
     // Appearance
     theme: isDarkMode ? 'dark' : 'light',
-    accentColor: '#10B981',
     fontScale: 100,
     
     // Privacy
@@ -264,9 +263,9 @@ const SettingsPage = () => {
                   {accentColors.map((color) => (
                     <button
                       key={color.value}
-                      onClick={() => setSettings({ ...settings, accentColor: color.value })}
+                      onClick={() => setAccentColor(color.value)}
                       className={`w-10 h-10 rounded-lg border-2 ${
-                        settings.accentColor === color.value
+                        accentColor === color.value
                           ? 'border-gray-900 dark:border-gray-100'
                           : 'border-transparent'
                       }`}

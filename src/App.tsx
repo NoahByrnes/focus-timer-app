@@ -43,13 +43,13 @@ const NavItem = ({ to, icon: Icon, label, onClick }: { to: string; icon: any; la
       onClick={onClick}
       className={`flex items-center space-x-4 px-4 py-4 w-full text-left rounded-2xl transition-all duration-300 group ${
         isActive
-          ? 'bg-ios-blue/10 dark:bg-ios-blue/20 text-ios-blue shadow-sm backdrop-blur-sm'
+          ? 'bg-accent-light text-accent shadow-sm backdrop-blur-sm'
           : 'text-gray-700 dark:text-gray-300 hover:bg-white/40 dark:hover:bg-gray-800/40 hover:backdrop-blur-sm hover:shadow-sm'
       }`}
     >
       <div className={`p-2 rounded-xl transition-all duration-300 ${
         isActive 
-          ? 'bg-ios-blue/20 dark:bg-ios-blue/30' 
+          ? 'bg-accent-medium' 
           : 'bg-gray-100/50 dark:bg-gray-700/50 group-hover:bg-gray-200/70 dark:group-hover:bg-gray-600/70'
       }`}>
         <Icon className="w-5 h-5" />
@@ -71,14 +71,14 @@ const AnalyzeDropdownButton = ({ isAnalyzeOpen, setIsAnalyzeOpen }: {
       onClick={() => setIsAnalyzeOpen(!isAnalyzeOpen)}
       className={`flex items-center justify-between px-4 py-4 w-full text-left rounded-2xl transition-all duration-300 group ${
         isActive
-          ? 'bg-ios-blue/10 dark:bg-ios-blue/20 text-ios-blue shadow-sm backdrop-blur-sm'
+          ? 'bg-accent-light text-accent shadow-sm backdrop-blur-sm'
           : 'text-gray-700 dark:text-gray-300 hover:bg-white/40 dark:hover:bg-gray-800/40 hover:backdrop-blur-sm hover:shadow-sm'
       }`}
     >
       <div className="flex items-center space-x-4">
         <div className={`p-2 rounded-xl transition-all duration-300 ${
           isActive
-            ? 'bg-ios-blue/20 dark:bg-ios-blue/30' 
+            ? 'bg-accent-medium' 
             : 'bg-gray-100/50 dark:bg-gray-700/50 group-hover:bg-gray-200/70 dark:group-hover:bg-gray-600/70'
         }`}>
           <BarChart3 className="w-5 h-5" />
@@ -112,7 +112,7 @@ const AnalyzeSubMenuItem = ({ range, label, setAnalyzeTimeRange, onClick }: {
       }}
       className={`block px-4 py-2 text-subhead rounded-xl transition-all duration-300 ${
         isActive
-          ? 'bg-ios-blue/10 dark:bg-ios-blue/20 text-ios-blue'
+          ? 'bg-accent-light text-accent'
           : 'text-gray-600 dark:text-gray-400 hover:bg-white/30 dark:hover:bg-gray-800/30'
       }`}
     >
@@ -143,20 +143,20 @@ const MobileTabBar = () => {
                 to={item.path}
                 className={`flex flex-col items-center space-y-1 px-3 py-2 rounded-xl transition-all duration-300 ${
                   isActive 
-                    ? 'bg-ios-blue/10 dark:bg-ios-blue/20' 
+                    ? 'bg-accent-light' 
                     : 'hover:bg-gray-100/50 dark:hover:bg-gray-800/50'
                 }`}
               >
                 <Icon 
                   className={`w-6 h-6 transition-all duration-300 ${
                     isActive 
-                      ? 'text-ios-blue scale-110' 
+                      ? 'text-accent scale-110' 
                       : 'text-ios-gray dark:text-gray-400'
                   }`} 
                 />
                 <span className={`text-xs font-medium transition-all duration-300 ${
                   isActive 
-                    ? 'text-ios-blue' 
+                    ? 'text-accent' 
                     : 'text-ios-gray dark:text-gray-400'
                 }`}>
                   {item.label}
@@ -290,7 +290,7 @@ const MainAppContent = ({
                 className={({ isActive }) =>
                   `flex items-center space-x-4 px-4 py-3 rounded-2xl w-full text-left transition-all duration-300 group ${
                     isActive
-                      ? 'bg-ios-blue/10 dark:bg-ios-blue/20 text-ios-blue shadow-sm backdrop-blur-sm'
+                      ? 'bg-accent-light text-accent shadow-sm backdrop-blur-sm'
                       : 'text-gray-700 dark:text-gray-300 hover:bg-white/40 dark:hover:bg-gray-800/40'
                   }`
                 }
@@ -299,7 +299,7 @@ const MainAppContent = ({
                   <>
                     <div className={`p-2 rounded-xl transition-all duration-300 ${
                       isActive 
-                        ? 'bg-ios-blue/20 dark:bg-ios-blue/30' 
+                        ? 'bg-accent-medium' 
                         : 'bg-gray-100/50 dark:bg-gray-700/50 group-hover:bg-gray-200/70 dark:group-hover:bg-gray-600/70'
                     }`}>
                       <Settings className="w-5 h-5" />
@@ -313,7 +313,7 @@ const MainAppContent = ({
                 className={({ isActive }) =>
                   `flex items-center space-x-4 px-4 py-3 rounded-2xl w-full text-left transition-all duration-300 group ${
                     isActive
-                      ? 'bg-ios-blue/10 dark:bg-ios-blue/20 text-ios-blue shadow-sm backdrop-blur-sm'
+                      ? 'bg-accent-light text-accent shadow-sm backdrop-blur-sm'
                       : 'text-gray-700 dark:text-gray-300 hover:bg-white/40 dark:hover:bg-gray-800/40'
                   }`
                 }
@@ -322,7 +322,7 @@ const MainAppContent = ({
                   <>
                     <div className={`p-2 rounded-xl transition-all duration-300 ${
                       isActive 
-                        ? 'bg-ios-blue/20 dark:bg-ios-blue/30' 
+                        ? 'bg-accent-medium' 
                         : 'bg-gray-100/50 dark:bg-gray-700/50 group-hover:bg-gray-200/70 dark:group-hover:bg-gray-600/70'
                     }`}>
                       <User className="w-5 h-5" />
