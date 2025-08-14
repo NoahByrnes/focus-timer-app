@@ -897,7 +897,7 @@ const FocusPage = () => {
       )}
 
       {/* Main Content Container */}
-      <div className="w-full max-w-3xl mx-auto flex flex-col items-center py-8">
+      <div className="w-full max-w-3xl mx-auto flex flex-col items-center py-8 relative z-10">
         
         {/* Task Selector */}
         <div className="w-full max-w-xs mb-6 sm:mb-8">
