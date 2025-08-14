@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Play, Pause, Settings, FileText, Timer, X, Plus, Minus, Zap, Target, TrendingUp, Bell, BellOff, Keyboard, Flame, ChevronDown, Check } from 'lucide-react';
+import { Play, Pause, Settings, FileText, Timer, X, Plus, Minus, Zap, Target, TrendingUp, Bell, BellOff, Keyboard, Flame, ChevronDown, Check, Waves, Maximize2, ArrowLeft } from 'lucide-react';
 import { useTodos } from './context/TodoContext';
 import BackgroundGradient from './components/BackgroundGradient';
+import { AmbientWaves } from './components/AmbientWaves';
 
 type TimerMode = 'pomodoro' | 'flowtime' | 'custom';
 
@@ -58,8 +59,8 @@ const FocusPage = () => {
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState('');
-  // const [isAmbientMode, setIsAmbientMode] = useState(false);
-  // const [showPopOutOption, setShowPopOutOption] = useState(false);
+  const [isAmbientMode, setIsAmbientMode] = useState(false);
+  const [isPopOutMode, setIsPopOutMode] = useState(false);
   
   // Configurable durations for each mode (in minutes)
   const [modeDurations, setModeDurations] = useState<Record<TimerMode, { work: number; break: number }>>({
@@ -369,10 +370,145 @@ const FocusPage = () => {
     return formatTime(timeLeft);
   };
 
+  // Pop-out window handler
+  useEffect(() => {
+    if (isPopOutMode) {
+      // Open pop-out window
+      const popOutWindow = window.open(
+        '',
+        'focusTimer',
+        'width=320,height=400,resizable=no,scrollbars=no,toolbar=no,menubar=no,location=no,status=no'
+      );
+      
+      if (popOutWindow) {
+        // Write minimal HTML for pop-out timer
+        popOutWindow.document.write(`
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>Focus Timer</title>
+            <style>
+              * { margin: 0; padding: 0; box-sizing: border-box; }
+              body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                height: 100vh;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                user-select: none;
+              }
+              .timer {
+                font-size: 4rem;
+                font-weight: 200;
+                margin-bottom: 2rem;
+              }
+              .task {
+                font-size: 1rem;
+                opacity: 0.9;
+                margin-bottom: 2rem;
+                padding: 0 1rem;
+                text-align: center;
+              }
+              .controls {
+                display: flex;
+                gap: 1rem;
+              }
+              button {
+                padding: 0.75rem 1.5rem;
+                border: none;
+                border-radius: 8px;
+                background: rgba(255, 255, 255, 0.2);
+                color: white;
+                font-size: 1rem;
+                cursor: pointer;
+                backdrop-filter: blur(10px);
+                transition: background 0.2s;
+              }
+              button:hover {
+                background: rgba(255, 255, 255, 0.3);
+              }
+              .status {
+                margin-top: 1rem;
+                font-size: 0.9rem;
+                opacity: 0.8;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="timer" id="timer">${getDisplayTime()}</div>
+            <div class="task">${selectedTodo ? selectedTodo.text : 'Focus Session'}</div>
+            <div class="controls">
+              <button id="playPause">${isRunning ? 'Pause' : 'Play'}</button>
+              <button id="return">Return</button>
+            </div>
+            <div class="status" id="status">${isBreakTime ? 'Break Time' : 'Focus Time'}</div>
+          </body>
+          </html>
+        `);
+        
+        // Set up message communication
+        const updatePopOut = () => {
+          if (popOutWindow && !popOutWindow.closed) {
+            const timerEl = popOutWindow.document.getElementById('timer');
+            const statusEl = popOutWindow.document.getElementById('status');
+            const playPauseEl = popOutWindow.document.getElementById('playPause');
+            
+            if (timerEl) timerEl.textContent = getDisplayTime();
+            if (statusEl) statusEl.textContent = isBreakTime ? 'Break Time' : 'Focus Time';
+            if (playPauseEl) playPauseEl.textContent = isRunning ? 'Pause' : 'Play';
+          }
+        };
+        
+        // Update every second
+        const interval = setInterval(updatePopOut, 100);
+        
+        // Handle button clicks
+        const playPauseBtn = popOutWindow.document.getElementById('playPause');
+        const returnBtn = popOutWindow.document.getElementById('return');
+        
+        if (playPauseBtn) {
+          playPauseBtn.addEventListener('click', () => {
+            if (isRunning) {
+              pauseTimer();
+            } else {
+              startTimer();
+            }
+          });
+        }
+        
+        if (returnBtn) {
+          returnBtn.addEventListener('click', () => {
+            setIsPopOutMode(false);
+            popOutWindow.close();
+          });
+        }
+        
+        // Clean up on window close
+        popOutWindow.addEventListener('beforeunload', () => {
+          setIsPopOutMode(false);
+          clearInterval(interval);
+        });
+        
+        return () => {
+          clearInterval(interval);
+          if (!popOutWindow.closed) {
+            popOutWindow.close();
+          }
+        };
+      }
+    }
+  }, [isPopOutMode, isRunning, isBreakTime, selectedTodo, getDisplayTime, pauseTimer, startTimer]);
+
   return (
     <div className="flex-1 flex flex-col items-center p-6 sm:p-8 lg:p-12 relative overflow-auto">
       {/* Unified background gradient */}
       <BackgroundGradient />
+      
+      {/* Ambient Waves Animation */}
+      <AmbientWaves isActive={isAmbientMode} color={isBreakTime ? '#FF9500' : '#007AFF'} />
       
       {/* Apple-style notification */}
       {showNotification && (
@@ -723,11 +859,24 @@ const FocusPage = () => {
         </div>
       )}
 
+      {/* Ambient Mode Controls */}
+      {isAmbientMode && (
+        <div className="fixed top-6 left-6 z-50">
+          <button
+            onClick={() => setIsAmbientMode(false)}
+            className="p-3 backdrop-blur-xl bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl shadow-lg flex items-center space-x-2 text-white"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span className="text-sm font-medium">Exit Ambient</span>
+          </button>
+        </div>
+      )}
+
       {/* Main Content Container */}
-      <div className="w-full max-w-3xl mx-auto flex flex-col items-center py-8 relative z-10">
+      <div className={`w-full max-w-3xl mx-auto flex flex-col items-center py-8 relative z-10 ${isAmbientMode ? 'ambient-mode' : ''}`}>
         
-        {/* Task Selector */}
-        <div className="w-full max-w-xs mb-6 sm:mb-8">
+        {/* Task Selector - Hide in ambient mode */}
+        <div className={`w-full max-w-xs mb-6 sm:mb-8 ${isAmbientMode ? 'opacity-0 pointer-events-none' : ''}`}>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Select Task
           </label>
@@ -808,7 +957,7 @@ const FocusPage = () => {
         </div>
 
         {/* Apple-style Timer Display */}
-        <div className="relative mb-12 sm:mb-16 lg:mb-20">
+        <div className={`relative mb-12 sm:mb-16 lg:mb-20 ${isAmbientMode ? 'scale-125' : ''}`}>
         <div className="relative">
           {/* Glass morphism background */}
           <div className="absolute inset-0 backdrop-blur-3xl bg-white/20 dark:bg-gray-900/20 rounded-full border border-white/30 dark:border-gray-700/30 shadow-2xl"></div>
@@ -891,7 +1040,7 @@ const FocusPage = () => {
       ) && (
         <button
           onClick={startTimer}
-          className="mb-12 sm:mb-16 px-8 sm:px-12 py-4 sm:py-5 bg-gradient-to-r from-ios-blue to-ios-blue-light hover:from-ios-blue/90 hover:to-ios-blue-light/90 active:scale-95 text-white rounded-3xl font-semibold flex items-center space-x-3 text-body shadow-xl border border-white/20 backdrop-blur-sm  hover:shadow-glow"
+          className={`mb-12 sm:mb-16 px-8 sm:px-12 py-4 sm:py-5 bg-gradient-to-r from-ios-blue to-ios-blue-light hover:from-ios-blue/90 hover:to-ios-blue-light/90 active:scale-95 text-white rounded-3xl font-semibold flex items-center space-x-3 text-body shadow-xl border border-white/20 backdrop-blur-sm  hover:shadow-glow ${isAmbientMode ? 'scale-110' : ''}`}
         >
           <div className="p-1 bg-white/20 rounded-xl">
             <Play className="w-5 h-5" />
@@ -906,7 +1055,7 @@ const FocusPage = () => {
       {(isRunning || (!isRunning && (
         (timerMode === 'flowtime' ? elapsedTime > 0 : timeLeft !== modeDurations[timerMode].work * 60) || isBreakTime
       ))) && (
-        <div className="flex items-center justify-center space-x-6 sm:space-x-8 mb-12 sm:mb-16">
+        <div className={`flex items-center justify-center space-x-6 sm:space-x-8 mb-12 sm:mb-16 ${isAmbientMode ? 'scale-110' : ''}`}>
           <button
             onClick={isRunning ? pauseTimer : startTimer}
             className="flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-r from-ios-green to-emerald-500 hover:from-ios-green/90 hover:to-emerald-500/90 active:scale-90 text-white rounded-full shadow-2xl border border-white/20 backdrop-blur-sm  hover:shadow-glow"
@@ -949,8 +1098,8 @@ const FocusPage = () => {
         </div>
       )}
 
-        {/* Action Buttons and Timer Mode Selector */}
-        <div className="flex flex-col items-center space-y-3 sm:space-y-4">
+        {/* Action Buttons and Timer Mode Selector - Hide in ambient mode */}
+        <div className={`flex flex-col items-center space-y-3 sm:space-y-4 ${isAmbientMode ? 'opacity-0 pointer-events-none' : ''}`}>
           {/* Timer Mode Selector Dropdown */}
           <div className="relative">
             <select
@@ -986,8 +1135,26 @@ const FocusPage = () => {
         
       </div> {/* End of Main Content Container */}
       
-      {/* Quick Action Buttons */}
-      <div className="fixed bottom-4 right-4 flex flex-col space-y-2">
+      {/* Quick Action Buttons - Hide in ambient mode */}
+      <div className={`fixed bottom-4 right-4 flex flex-col space-y-2 ${isAmbientMode ? 'opacity-0 pointer-events-none' : ''}`}>
+        {/* Ambient Mode Button */}
+        <button
+          onClick={() => setIsAmbientMode(true)}
+          className="p-3 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-full shadow-lg text-gray-600 dark:text-gray-400"
+          title="Ambient Mode"
+        >
+          <Waves className="w-5 h-5" />
+        </button>
+        
+        {/* Pop-out Timer Button */}
+        <button
+          onClick={() => setIsPopOutMode(true)}
+          className="p-3 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-full shadow-lg text-gray-600 dark:text-gray-400"
+          title="Pop-out Timer"
+        >
+          <Maximize2 className="w-5 h-5" />
+        </button>
+        
         <button
           onClick={() => setShowStatsPanel(!showStatsPanel)}
           className="p-3 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-full shadow-lg text-gray-600 dark:text-gray-400"
