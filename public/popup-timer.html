@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Focus Timer</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      overflow: hidden;
+    }
+    
+    .container {
+      text-align: center;
+      padding: 2rem;
+    }
+    
+    .timer {
+      font-size: 4.5rem;
+      font-weight: 200;
+      margin-bottom: 1rem;
+      letter-spacing: -2px;
+      font-variant-numeric: tabular-nums;
+    }
+    
+    .status {
+      font-size: 1rem;
+      opacity: 0.9;
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 500;
+    }
+    
+    .task {
+      font-size: 0.9rem;
+      opacity: 0.8;
+      margin-bottom: 2rem;
+      max-width: 280px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .controls {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+    }
+    
+    button {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    button:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-1px);
+    }
+    
+    button:active {
+      transform: translateY(0);
+    }
+    
+    .play-pause {
+      background: rgba(255, 255, 255, 0.3);
+      padding: 0.875rem 2rem;
+    }
+    
+    .play-pause:hover {
+      background: rgba(255, 255, 255, 0.4);
+    }
+    
+    /* Loading state */
+    .loading {
+      font-size: 1.5rem;
+      opacity: 0.7;
+    }
+    
+    /* Pulse animation for break time */
+    @keyframes pulse {
+      0%, 100% { opacity: 0.9; }
+      50% { opacity: 0.6; }
+    }
+    
+    .break-mode {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+    
+    .break-mode .status {
+      animation: pulse 2s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="timer" id="timer">--:--</div>
+    <div class="status" id="status">Connecting...</div>
+    <div class="task" id="task"></div>
+    <div class="controls">
+      <button id="playPause" class="play-pause">
+        <span id="playPauseText">Loading...</span>
+      </button>
+      <button id="return">Return to App</button>
+    </div>
+  </div>
+
+  <script>
+    // Listen for messages from the parent window
+    let parentWindow = window.opener;
+    
+    // Request initial state
+    if (parentWindow) {
+      parentWindow.postMessage({ type: 'POPUP_READY' }, '*');
+    }
+    
+    // Handle messages from parent
+    window.addEventListener('message', (event) => {
+      if (event.data.type === 'TIMER_UPDATE') {
+        const { time, status, task, isRunning, isBreakTime } = event.data;
+        
+        // Update timer display
+        document.getElementById('timer').textContent = time;
+        document.getElementById('status').textContent = status;
+        document.getElementById('task').textContent = task || '';
+        
+        // Update play/pause button
+        const playPauseText = document.getElementById('playPauseText');
+        playPauseText.textContent = isRunning ? 'Pause' : 'Play';
+        
+        // Update body class for break mode
+        if (isBreakTime) {
+          document.body.classList.add('break-mode');
+        } else {
+          document.body.classList.remove('break-mode');
+        }
+      }
+    });
+    
+    // Handle play/pause button
+    document.getElementById('playPause').addEventListener('click', () => {
+      if (parentWindow && !parentWindow.closed) {
+        parentWindow.postMessage({ type: 'TOGGLE_TIMER' }, '*');
+      }
+    });
+    
+    // Handle return button
+    document.getElementById('return').addEventListener('click', () => {
+      if (parentWindow && !parentWindow.closed) {
+        parentWindow.postMessage({ type: 'CLOSE_POPUP' }, '*');
+      }
+      window.close();
+    });
+    
+    // Notify parent when closing
+    window.addEventListener('beforeunload', () => {
+      if (parentWindow && !parentWindow.closed) {
+        parentWindow.postMessage({ type: 'POPUP_CLOSED' }, '*');
+      }
+    });
+    
+    // Check if parent is still there
+    setInterval(() => {
+      if (!parentWindow || parentWindow.closed) {
+        document.getElementById('status').textContent = 'Disconnected';
+        document.getElementById('playPauseText').textContent = 'Disconnected';
+      }
+    }, 1000);
+  </script>
+</body>
+</html>

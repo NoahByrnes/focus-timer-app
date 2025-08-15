@@ -3,7 +3,6 @@ import { Play, Pause, Settings, FileText, Timer, X, Plus, Minus, Zap, Target, Tr
 import { useTodos } from './context/TodoContext';
 import BackgroundGradient from './components/BackgroundGradient';
 import { AmbientWaves } from './components/AmbientWaves';
-import { PopOutTimer } from './components/PopOutTimer';
 
 type TimerMode = 'pomodoro' | 'flowtime' | 'custom';
 
@@ -61,7 +60,7 @@ const FocusPage = () => {
   const [showNotification, setShowNotification] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState('');
   const [isAmbientMode, setIsAmbientMode] = useState(false);
-  const [isPopOutMode, setIsPopOutMode] = useState(false);
+  const popupWindowRef = useRef<Window | null>(null);
   
   // Configurable durations for each mode (in minutes)
   const [modeDurations, setModeDurations] = useState<Record<TimerMode, { work: number; break: number }>>({
@@ -371,13 +370,99 @@ const FocusPage = () => {
     return formatTime(timeLeft);
   };
 
-  const handlePlayPause = useCallback(() => {
-    if (isRunning) {
-      pauseTimer();
-    } else {
-      startTimer();
+  // Handle popup window
+  const openPopupTimer = useCallback(() => {
+    // Close existing popup if any
+    if (popupWindowRef.current && !popupWindowRef.current.closed) {
+      popupWindowRef.current.close();
     }
-  }, [isRunning, pauseTimer, startTimer]);
+    
+    // Open new popup window
+    const width = 350;
+    const height = 450;
+    const left = window.screen.width - width - 20;
+    const top = 20;
+    
+    popupWindowRef.current = window.open(
+      '/popup-timer.html',
+      'focusTimerPopup',
+      `width=${width},height=${height},left=${left},top=${top},resizable=no,scrollbars=no,toolbar=no,menubar=no,location=no,status=no`
+    );
+    
+    // If popup was blocked, alert the user
+    if (!popupWindowRef.current) {
+      alert('Please allow popups for this site to use the pop-out timer feature.');
+    }
+  }, []);
+  
+  // Send updates to popup window
+  useEffect(() => {
+    const updatePopup = () => {
+      if (popupWindowRef.current && !popupWindowRef.current.closed) {
+        popupWindowRef.current.postMessage({
+          type: 'TIMER_UPDATE',
+          time: getDisplayTime(),
+          status: isBreakTime ? 'Break Time' : 'Focus Time',
+          task: selectedTodo?.text || 'No task selected',
+          isRunning,
+          isBreakTime
+        }, '*');
+      }
+    };
+    
+    // Update immediately and then every 100ms
+    updatePopup();
+    const interval = setInterval(updatePopup, 100);
+    
+    return () => clearInterval(interval);
+  }, [getDisplayTime, isBreakTime, selectedTodo, isRunning]);
+  
+  // Listen for messages from popup
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      // Only accept messages from our popup
+      if (event.source !== popupWindowRef.current) return;
+      
+      switch (event.data.type) {
+        case 'POPUP_READY':
+          // Popup is ready, send initial state
+          if (popupWindowRef.current && !popupWindowRef.current.closed) {
+            popupWindowRef.current.postMessage({
+              type: 'TIMER_UPDATE',
+              time: getDisplayTime(),
+              status: isBreakTime ? 'Break Time' : 'Focus Time',
+              task: selectedTodo?.text || 'No task selected',
+              isRunning,
+              isBreakTime
+            }, '*');
+          }
+          break;
+        case 'TOGGLE_TIMER':
+          if (isRunning) {
+            pauseTimer();
+          } else {
+            startTimer();
+          }
+          break;
+        case 'CLOSE_POPUP':
+        case 'POPUP_CLOSED':
+          popupWindowRef.current = null;
+          break;
+      }
+    };
+    
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [isRunning, pauseTimer, startTimer, getDisplayTime, isBreakTime, selectedTodo]);
+  
+  // Clean up popup on unmount
+  useEffect(() => {
+    return () => {
+      if (popupWindowRef.current && !popupWindowRef.current.closed) {
+        popupWindowRef.current.close();
+      }
+    };
+  }, []);
 
   return (
     <div className="flex-1 flex flex-col items-center p-6 sm:p-8 lg:p-12 relative overflow-auto">
@@ -386,17 +471,6 @@ const FocusPage = () => {
       
       {/* Ambient Waves Animation */}
       <AmbientWaves isActive={isAmbientMode} color={isBreakTime ? '#FF9500' : '#007AFF'} />
-      
-      {/* Pop-out Timer */}
-      <PopOutTimer
-        isActive={isPopOutMode}
-        onClose={() => setIsPopOutMode(false)}
-        timeDisplay={getDisplayTime()}
-        isRunning={isRunning}
-        isBreakTime={isBreakTime}
-        taskName={selectedTodo?.text}
-        onPlayPause={handlePlayPause}
-      />
       
       {/* Apple-style notification */}
       {showNotification && (
@@ -1036,7 +1110,7 @@ const FocusPage = () => {
         
         {/* Pop-out Timer Button */}
         <button
-          onClick={() => setIsPopOutMode(true)}
+          onClick={openPopupTimer}
           className="p-3 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-full shadow-lg text-gray-600 dark:text-gray-400"
           title="Pop-out Timer"
         >
