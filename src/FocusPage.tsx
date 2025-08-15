@@ -377,16 +377,16 @@ const FocusPage = () => {
       popupWindowRef.current.close();
     }
     
-    // Open new popup window
-    const width = 350;
-    const height = 450;
-    const left = window.screen.width - width - 20;
-    const top = 20;
+    // Open new popup window - small and unobtrusive
+    const width = 250;
+    const height = 180;
+    const left = window.screen.width - width - 30;
+    const top = 30;
     
     popupWindowRef.current = window.open(
       '/popup-timer.html',
       'focusTimerPopup',
-      `width=${width},height=${height},left=${left},top=${top},resizable=no,scrollbars=no,toolbar=no,menubar=no,location=no,status=no`
+      `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no,status=no`
     );
     
     // If popup was blocked, alert the user
