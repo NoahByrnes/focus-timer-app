@@ -377,16 +377,21 @@ const FocusPage = () => {
       popupWindowRef.current.close();
     }
     
-    // Open new popup window - small and unobtrusive
-    const width = 250;
-    const height = 180;
-    const left = window.screen.width - width - 30;
-    const top = 30;
+    // Get current theme
+    const isDark = document.documentElement.classList.contains('dark');
+    const theme = isDark ? 'dark' : 'light';
     
+    // Open new popup window - small and unobtrusive
+    const width = 280;
+    const height = 200;
+    const left = window.screen.width - width - 50;
+    const top = 50;
+    
+    // Include theme in URL
     popupWindowRef.current = window.open(
-      '/popup-timer.html',
+      `/popup-timer.html?theme=${theme}`,
       'focusTimerPopup',
-      `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no,status=no`
+      `width=${width},height=${height},left=${left},top=${top},location=no,menubar=no,status=no,toolbar=no,scrollbars=no,resizable=yes`
     );
     
     // If popup was blocked, alert the user

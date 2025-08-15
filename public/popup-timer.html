@@ -11,6 +11,7 @@
       box-sizing: border-box;
     }
     
+    /* Light theme (default) */
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -23,6 +24,11 @@
       overflow: hidden;
     }
     
+    /* Dark theme */
+    body.dark {
+      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+    }
+    
     .container {
       text-align: center;
       padding: 1rem;
@@ -30,15 +36,15 @@
     }
     
     .timer {
-      font-size: 2.5rem;
-      font-weight: 300;
+      font-size: 3rem;
+      font-weight: 200;
       margin-bottom: 0.25rem;
       letter-spacing: -1px;
       font-variant-numeric: tabular-nums;
     }
     
     .status {
-      font-size: 0.7rem;
+      font-size: 0.75rem;
       opacity: 0.85;
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -47,10 +53,10 @@
     }
     
     .task {
-      font-size: 0.65rem;
+      font-size: 0.7rem;
       opacity: 0.7;
       margin-bottom: 0.75rem;
-      max-width: 200px;
+      max-width: 220px;
       margin-left: auto;
       margin-right: auto;
       white-space: nowrap;
@@ -66,12 +72,12 @@
     }
     
     button {
-      padding: 0.4rem 0.8rem;
+      padding: 0.5rem 1rem;
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
       background: rgba(255, 255, 255, 0.2);
       color: white;
-      font-size: 0.75rem;
+      font-size: 0.8rem;
       font-weight: 500;
       cursor: pointer;
       backdrop-filter: blur(10px);
@@ -92,7 +98,7 @@
     
     .play-pause {
       background: rgba(255, 255, 255, 0.25);
-      padding: 0.4rem 1rem;
+      padding: 0.5rem 1.2rem;
     }
     
     .play-pause:hover {
@@ -100,14 +106,8 @@
     }
     
     .return-btn {
-      padding: 0.4rem 0.6rem;
-      font-size: 0.7rem;
-    }
-    
-    /* Loading state */
-    .loading {
-      font-size: 1rem;
-      opacity: 0.7;
+      padding: 0.5rem 0.8rem;
+      font-size: 0.75rem;
     }
     
     /* Break mode styling */
@@ -115,12 +115,13 @@
       background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
     }
     
-    /* Minimalist icons */
-    .icon {
-      width: 12px;
-      height: 12px;
-      display: inline-block;
-      vertical-align: middle;
+    .dark.break-mode {
+      background: linear-gradient(135deg, #831843 0%, #be123c 100%);
+    }
+    
+    /* Icon styling */
+    .play-icon, .pause-icon {
+      font-size: 1rem;
     }
   </style>
 </head>
@@ -133,17 +134,28 @@
       <button id="playPause" class="play-pause">
         <span id="playPauseText">...</span>
       </button>
-      <button id="return" class="return-btn" title="Return to main app">✕</button>
+      <button id="return" class="return-btn" title="Close popup">✕</button>
     </div>
   </div>
 
   <script>
+    // Get theme from URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const theme = urlParams.get('theme');
+    
+    // Apply theme
+    if (theme === 'dark') {
+      document.body.classList.add('dark');
+    }
+    
     // Listen for messages from the parent window
     let parentWindow = window.opener;
     
     // Request initial state
     if (parentWindow) {
-      parentWindow.postMessage({ type: 'POPUP_READY' }, '*');
+      setTimeout(() => {
+        parentWindow.postMessage({ type: 'POPUP_READY' }, '*');
+      }, 100);
     }
     
     // Handle messages from parent
@@ -156,7 +168,7 @@
         document.getElementById('status').textContent = status;
         document.getElementById('task').textContent = task || '';
         
-        // Update play/pause button
+        // Update play/pause button with better icons
         const playPauseText = document.getElementById('playPauseText');
         playPauseText.textContent = isRunning ? '⏸' : '▶';
         
@@ -198,6 +210,13 @@
         document.getElementById('playPauseText').textContent = '✕';
       }
     }, 1000);
+    
+    // Prevent window from being resized too large on open
+    window.addEventListener('load', () => {
+      if (window.outerWidth > 400 || window.outerHeight > 300) {
+        window.resizeTo(280, 200);
+      }
+    });
   </script>
 </body>
 </html>
